@@ -38,6 +38,15 @@ echo "==> Linking production env files"
 ln -sfn "$BACKEND_ENV" "$APP_DIR/.env"
 ln -sfn "$WEB_ENV" "$APP_DIR/web/.env.production.local"
 
+if [ ! -x "$VENV_DIR/bin/python" ]; then
+  echo "==> Python virtualenv missing, creating $VENV_DIR"
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required but was not found" >&2
+    exit 1
+  fi
+  python3 -m venv "$VENV_DIR"
+fi
+
 echo "==> Installing backend dependencies"
 source "$VENV_DIR/bin/activate"
 python -m pip install --upgrade pip
