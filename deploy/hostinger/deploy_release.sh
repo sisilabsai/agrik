@@ -86,7 +86,10 @@ for key, value in values.items():
     if value is not None:
         os.environ[key] = value
 
-subprocess.run(["alembic", "upgrade", "head"], check=True)
+subprocess.run(
+    [os.path.join("/var/www/agrik.co/venv/bin", "python"), "-m", "alembic", "upgrade", "head"],
+    check=True,
+)
 PY
 
 echo "==> Restarting services"
