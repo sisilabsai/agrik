@@ -100,6 +100,16 @@ cp "$APP_DIR/deploy/hostinger/systemd/agrik-price-alert-worker.service" /etc/sys
 systemctl daemon-reload
 systemctl enable agrik-api agrik-retry-worker agrik-weather-alert-worker agrik-price-alert-worker
 
+echo "==> Installing/updating Nginx site"
+mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
+cp "$APP_DIR/deploy/hostinger/nginx/agrik.co.conf" /etc/nginx/sites-available/agrik.co.conf
+ln -sfn /etc/nginx/sites-available/agrik.co.conf /etc/nginx/sites-enabled/agrik.co.conf
+if [ -L /etc/nginx/sites-enabled/default ]; then
+  rm -f /etc/nginx/sites-enabled/default
+fi
+nginx -t
+systemctl reload nginx
+
 echo "==> Restarting services"
 systemctl restart agrik-api
 systemctl restart agrik-retry-worker
