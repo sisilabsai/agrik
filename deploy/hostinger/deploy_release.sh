@@ -102,8 +102,9 @@ systemctl enable agrik-api agrik-retry-worker agrik-weather-alert-worker agrik-p
 
 echo "==> Installing/updating Nginx site"
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-cp "$APP_DIR/deploy/hostinger/nginx/agrik.co.conf" /etc/nginx/sites-available/agrik.co.conf
-ln -sfn /etc/nginx/sites-available/agrik.co.conf /etc/nginx/sites-enabled/agrik.co.conf
+cp "$APP_DIR/deploy/hostinger/nginx/agrik.co.conf" /etc/nginx/sites-available/agrik.co
+ln -sfn /etc/nginx/sites-available/agrik.co /etc/nginx/sites-enabled/agrik.co
+rm -f /etc/nginx/sites-enabled/agrik.co.conf
 if [ -L /etc/nginx/sites-enabled/default ]; then
   rm -f /etc/nginx/sites-enabled/default
 fi
