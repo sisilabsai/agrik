@@ -56,6 +56,16 @@ echo "==> Installing backend dependencies"
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
 "$VENV_DIR/bin/pip" install -r "$APP_DIR/requirements.txt"
 
+if ! command -v npm >/dev/null 2>&1; then
+  echo "==> npm missing, installing Node.js 20"
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install Node.js" >&2
+    exit 1
+  fi
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt-get install -y nodejs
+fi
+
 echo "==> Installing frontend dependencies"
 cd "$APP_DIR/web"
 npm ci
