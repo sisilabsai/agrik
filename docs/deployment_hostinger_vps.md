@@ -26,20 +26,27 @@ This guide now assumes the following exact situation:
 
 - Nginx is already installed on the VPS and already serving `agrik.co`
 - the GitHub repository is [`https://github.com/sisilabsai/agrik`](https://github.com/sisilabsai/agrik)
-- that GitHub repository is currently empty
-- `/var/www/agrik.co/app` does not exist yet
+- the AGRIK codebase has already been pushed to GitHub
+- the repo has already been cloned to `/var/www/agrik.co/app`
+- PostgreSQL is already installed
+- PostgreSQL already has:
+  - database: `agrik_db`
+  - user: `agrik_user`
 
 That means the correct order is:
 
-1. prepare this project for GitHub safely
-2. push the code to GitHub
-3. clone it on the VPS into `/var/www/agrik.co/app`
-4. place the production env files on the VPS
-5. run the first deployment
+1. place the production env files on the VPS
+2. install systemd units
+3. replace the current Nginx `coming soon` site with the AGRIK config
+4. run the first deployment
+5. verify the live site
 
-## 1. First push to GitHub
+## 1. GitHub source of truth
 
-Before pushing anything, make sure secrets and local artifacts do not go to GitHub.
+GitHub is now the source of truth for production:
+
+- repo: [`https://github.com/sisilabsai/agrik`](https://github.com/sisilabsai/agrik)
+- server checkout: `/var/www/agrik.co/app`
 
 This repo now includes [`.gitignore`](/D:/Projects/AGRIK/.gitignore) so these do not get pushed:
 
@@ -51,21 +58,7 @@ This repo now includes [`.gitignore`](/D:/Projects/AGRIK/.gitignore) so these do
 - runtime uploads
 - local editor files
 
-From your local machine in `D:\Projects\AGRIK`, run:
-
-```powershell
-cd D:\Projects\AGRIK
-git init
-git branch -M main
-git remote add origin https://github.com/sisilabsai/agrik.git
-git add .
-git commit -m "Initial AGRIK production-ready deployment setup"
-git push -u origin main
-```
-
-If `origin` already exists, skip the `git remote add origin ...` line.
-
-After this succeeds, GitHub becomes the source of truth for the VPS.
+Do not commit the real VPS `.env` file or database password into GitHub.
 
 ## 2. Recommended production layout
 
@@ -128,30 +121,31 @@ This matches the current frontend code. Do not set it to `/api` unless the front
 
 ## 4. First deployment checklist
 
-1. Push the AGRIK codebase to GitHub.
-2. SSH into the VPS.
-3. Create `/var/www/agrik.co/app` by cloning from GitHub.
-4. Create production env files from the templates in [deploy/hostinger/env/backend.env.production.example](/D:/Projects/AGRIK/deploy/hostinger/env/backend.env.production.example) and [deploy/hostinger/env/web.env.production.example](/D:/Projects/AGRIK/deploy/hostinger/env/web.env.production.example).
-5. Run the bootstrap script in [bootstrap_server.sh](/D:/Projects/AGRIK/deploy/hostinger/bootstrap_server.sh).
-6. Install Nginx and systemd templates from the `deploy/hostinger` folder.
-7. Run the release script in [deploy_release.sh](/D:/Projects/AGRIK/deploy/hostinger/deploy_release.sh).
-8. Issue or renew SSL with Certbot.
-9. Test API, frontend, uploads, login, admin, and worker-driven alerts.
+1. SSH into the VPS.
+2. Create production env files from the templates in [deploy/hostinger/env/backend.env.production.example](/D:/Projects/AGRIK/deploy/hostinger/env/backend.env.production.example) and [deploy/hostinger/env/web.env.production.example](/D:/Projects/AGRIK/deploy/hostinger/env/web.env.production.example).
+3. Run the bootstrap script in [bootstrap_server.sh](/D:/Projects/AGRIK/deploy/hostinger/bootstrap_server.sh).
+4. Install Nginx and systemd templates from the `deploy/hostinger` folder.
+5. Run the release script in [deploy_release.sh](/D:/Projects/AGRIK/deploy/hostinger/deploy_release.sh).
+6. Issue or renew SSL with Certbot.
+7. Test API, frontend, uploads, login, admin, and worker-driven alerts.
 
-## 5. VPS setup from GitHub
+## 5. Current VPS starting point
 
-Once GitHub has the code, SSH to the server:
+You already have the code cloned on the VPS.
+
+Start from:
 
 ```bash
 ssh root@147.93.72.240
+cd /var/www/agrik.co/app
 ```
 
-Create the app folder by cloning the live repo:
+If you ever need to refresh the clone manually:
 
 ```bash
-mkdir -p /var/www/agrik.co
-git clone https://github.com/sisilabsai/agrik.git /var/www/agrik.co/app
 cd /var/www/agrik.co/app
+git fetch --all --prune
+git pull --ff-only origin main
 ```
 
 Then run:
@@ -173,7 +167,7 @@ Frontend env file location:
 Minimum backend variables to set correctly:
 
 - `APP_ENV=prod`
-- `DATABASE_URL=postgresql+psycopg://...`
+- `DATABASE_URL=postgresql+psycopg://agrik_user:<db_password>@localhost:5432/agrik_db`
 - `AUTH_SECRET=<strong-random-secret>`
 - `ADMIN_AUTH_SECRET=<strong-random-secret>`
 - `CORS_ALLOWED_ORIGINS=https://agrik.co,https://www.agrik.co`
@@ -196,11 +190,37 @@ Minimum frontend variables:
 - `VITE_API_TIMEOUT_MS=10000`
 - `VITE_CHAT_TIMEOUT_MS=90000`
 
+Recommended backend env skeleton for your VPS:
+
+```dotenv
+APP_ENV=prod
+DATABASE_URL=postgresql+psycopg://agrik_user:<your-vps-db-password>@localhost:5432/agrik_db
+DB_CONNECT_TIMEOUT=5
+AUTH_SECRET=replace-with-a-long-random-secret
+ADMIN_AUTH_SECRET=replace-with-another-long-random-secret
+AUTH_DEV_BYPASS_OTP=false
+ADMIN_REQUIRE_OTP=true
+ADMIN_SEED_EMAIL=admin@agrik.co
+ADMIN_SEED_PASSWORD=replace-with-a-strong-temp-password
+CORS_ALLOWED_ORIGINS=https://agrik.co,https://www.agrik.co
+MARKET_MEDIA_DIR=/var/www/agrik.co/runtime/market_media
+```
+
+Important:
+
+- keep the real database password only in `/var/www/agrik.co/shared/.env`
+- do not commit the real password into GitHub
+
 ## 7. Database plan
 
 Recommended production database:
 
 - PostgreSQL on the VPS for now
+
+Current production database values:
+
+- database: `agrik_db`
+- user: `agrik_user`
 
 The app already expects Alembic migrations in production. Use:
 
@@ -224,7 +244,7 @@ Do not rely on SQLite in production.
 
 ## 8. First-time server bootstrap
 
-From the VPS, after the GitHub clone:
+From the VPS:
 
 ```bash
 cd /var/www/agrik.co/app
@@ -315,6 +335,15 @@ systemctl reload nginx
 
 If an old `agrik.co` config already exists, replace it instead of creating a second active config.
 
+Recommended safe sequence:
+
+```bash
+cp /etc/nginx/sites-available/agrik.co.conf /etc/nginx/sites-available/agrik.co.conf.bak 2>/dev/null || true
+cp /var/www/agrik.co/app/deploy/hostinger/nginx/agrik.co.conf /etc/nginx/sites-available/agrik.co.conf
+nginx -t
+systemctl reload nginx
+```
+
 Then issue SSL:
 
 ```bash
@@ -362,18 +391,44 @@ Better long-term setup:
 
 Recommended ongoing flow:
 
-1. Push changes to the production branch.
-2. GitHub Actions runs quick validation.
-3. GitHub Actions connects to the VPS over SSH.
-4. The server runs `deploy_release.sh`.
-5. systemd restarts the services.
-6. Nginx continues serving the latest frontend build.
+1. Make changes locally in `D:\Projects\AGRIK`.
+2. Commit and push those changes to GitHub.
+3. GitHub Actions runs quick validation.
+4. GitHub Actions connects to the VPS over SSH.
+5. The server runs `deploy_release.sh`.
+6. The VPS pulls the latest GitHub revision.
+7. systemd restarts the services.
+8. Nginx continues serving the latest frontend build.
 
 For high-risk changes:
 
 1. Push to a staging branch first.
 2. Run manual smoke checks.
 3. Promote to production branch.
+
+Important rule:
+
+- if a change exists only on your local machine, the VPS cannot deploy it yet
+- the change must be committed and pushed to GitHub first
+- after that, the VPS can pull and deploy it
+
+Manual release sequence:
+
+```powershell
+cd D:\Projects\AGRIK
+git add .
+git commit -m "Describe the change"
+git push origin main
+```
+
+Then on the VPS:
+
+```bash
+ssh root@147.93.72.240
+cd /var/www/agrik.co/app
+git pull --ff-only origin main
+bash deploy/hostinger/deploy_release.sh main
+```
 
 ## 14. Smoke test after each release
 
@@ -455,24 +510,17 @@ Skip optional extras for the first go-live unless already required:
 
 Use this exact order for the first rollout:
 
-1. On your local machine:
-
-```powershell
-cd D:\Projects\AGRIK
-git init
-git branch -M main
-git remote add origin https://github.com/sisilabsai/agrik.git
-git add .
-git commit -m "Initial AGRIK deployment setup"
-git push -u origin main
-```
-
-2. On the VPS:
+1. On the VPS, confirm the app checkout exists:
 
 ```bash
 ssh root@147.93.72.240
-mkdir -p /var/www/agrik.co
-git clone https://github.com/sisilabsai/agrik.git /var/www/agrik.co/app
+cd /var/www/agrik.co/app
+git pull --ff-only origin main
+```
+
+2. Bootstrap the server:
+
+```bash
 cd /var/www/agrik.co/app
 bash deploy/hostinger/bootstrap_server.sh
 ```
@@ -481,6 +529,26 @@ bash deploy/hostinger/bootstrap_server.sh
 
 - `/var/www/agrik.co/shared/.env`
 - `/var/www/agrik.co/shared/web.env.production`
+
+Use these core values in `/var/www/agrik.co/shared/.env`:
+
+```dotenv
+APP_ENV=prod
+DATABASE_URL=postgresql+psycopg://agrik_user:<your-vps-db-password>@localhost:5432/agrik_db
+DB_CONNECT_TIMEOUT=5
+CORS_ALLOWED_ORIGINS=https://agrik.co,https://www.agrik.co
+MARKET_MEDIA_DIR=/var/www/agrik.co/runtime/market_media
+AUTH_DEV_BYPASS_OTP=false
+ADMIN_REQUIRE_OTP=true
+```
+
+Use this in `/var/www/agrik.co/shared/web.env.production`:
+
+```dotenv
+VITE_API_BASE_URL=https://agrik.co
+VITE_API_TIMEOUT_MS=10000
+VITE_CHAT_TIMEOUT_MS=90000
+```
 
 4. Install services and site config:
 
@@ -499,6 +567,12 @@ systemctl reload nginx
 cd /var/www/agrik.co/app
 bash deploy/hostinger/deploy_release.sh main
 ```
+
+For later releases, the normal order is:
+
+1. push local code changes to GitHub
+2. pull on the VPS
+3. run `deploy_release.sh main`
 
 6. Add SSL:
 
