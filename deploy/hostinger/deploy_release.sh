@@ -75,7 +75,7 @@ npm run build
 
 echo "==> Running database migrations"
 cd "$APP_DIR"
-python <<'PY'
+"$VENV_DIR/bin/python" - <<'PY'
 import os
 import subprocess
 from dotenv import dotenv_values
