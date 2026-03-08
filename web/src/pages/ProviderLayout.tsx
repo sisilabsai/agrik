@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../state/auth";
 import { Icon } from "../components/Visuals";
 import BrandLogo from "../components/BrandLogo";
+import MobileFabMenu from "../components/MobileFabMenu";
 
 const navItems = [
   { label: "Overview", path: "/provider", subtitle: "Command center", icon: "overview" as const },
@@ -55,12 +56,14 @@ export default function ProviderLayout() {
 
       <section className="farmer-main">
         <header className="farmer-topbar">
-          <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
-            Menu
-          </button>
-          <div>
-            <div className="label">{current.subtitle}</div>
-            <div className="farmer-topbar-heading">{current.label}</div>
+          <div className="dashboard-topbar-main">
+            <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
+              Menu
+            </button>
+            <div className="dashboard-topbar-copy">
+              <div className="label">{current.subtitle}</div>
+              <div className="farmer-topbar-heading">{current.label}</div>
+            </div>
           </div>
           <div className="farmer-topbar-actions">
             <div className="farmer-account-pill">
@@ -75,6 +78,16 @@ export default function ProviderLayout() {
         <main className="farmer-content">
           <Outlet />
         </main>
+        <MobileFabMenu
+          title="Actions"
+          actions={[
+            { label: "Services", to: "/provider/services", icon: "services" },
+            { label: "Leads", to: "/provider/leads", icon: "market" },
+            { label: "Marketing", to: "/provider/marketing", icon: "spark" },
+            { label: "Overview", to: "/provider", icon: "overview" },
+            { label: "Sign out", icon: "shield", onClick: logout },
+          ]}
+        />
       </section>
     </div>
   );

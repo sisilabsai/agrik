@@ -3,6 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useAdminAuth } from "../state/adminAuth";
 import { Icon } from "../components/Visuals";
 import BrandLogo from "../components/BrandLogo";
+import MobileFabMenu from "../components/MobileFabMenu";
 
 const navItems = [
   { label: "Overview", path: "/admin", subtitle: "Ops snapshot", icon: "overview" as const },
@@ -60,12 +61,14 @@ export default function AdminLayout() {
 
       <div className="admin-main">
         <header className="admin-topbar">
-          <button className="admin-menu-toggle" type="button" onClick={() => setSidebarOpen((prev) => !prev)}>
-            Menu
-          </button>
-          <div>
-            <div className="label">{current.subtitle}</div>
-            <div className="admin-topbar-heading">{current.label}</div>
+          <div className="dashboard-topbar-main">
+            <button className="admin-menu-toggle" type="button" onClick={() => setSidebarOpen((prev) => !prev)}>
+              Menu
+            </button>
+            <div className="dashboard-topbar-copy">
+              <div className="label">{current.subtitle}</div>
+              <div className="admin-topbar-heading">{current.label}</div>
+            </div>
           </div>
           <div className="admin-topbar-actions">
             <NavLink className="btn ghost small" to="/admin/prices">
@@ -90,6 +93,16 @@ export default function AdminLayout() {
         <main className="admin-content">
           <Outlet />
         </main>
+        <MobileFabMenu
+          title="Admin"
+          actions={[
+            { label: "Listings", to: "/admin/listings", icon: "listings" },
+            { label: "Prices", to: "/admin/prices", icon: "prices" },
+            { label: "Alerts", to: "/admin/alerts", icon: "alerts" },
+            { label: "Users", to: "/admin/users", icon: "users" },
+            { label: "Sign out", icon: "shield", onClick: logout },
+          ]}
+        />
       </div>
     </div>
   );

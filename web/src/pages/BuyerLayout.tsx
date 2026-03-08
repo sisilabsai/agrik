@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../state/auth";
 import { Icon } from "../components/Visuals";
 import BrandLogo from "../components/BrandLogo";
+import MobileFabMenu from "../components/MobileFabMenu";
 
 const navItems = [
   { label: "Buyer Dashboard", path: "/buyer", subtitle: "Demand overview", icon: "overview" as const },
@@ -48,12 +49,14 @@ export default function BuyerLayout() {
 
       <section className="farmer-main">
         <header className="farmer-topbar">
-          <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
-            Menu
-          </button>
-          <div>
-            <div className="label">{current.subtitle}</div>
-            <div className="farmer-topbar-heading">{current.label}</div>
+          <div className="dashboard-topbar-main">
+            <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
+              Menu
+            </button>
+            <div className="dashboard-topbar-copy">
+              <div className="label">{current.subtitle}</div>
+              <div className="farmer-topbar-heading">{current.label}</div>
+            </div>
           </div>
           <div className="farmer-topbar-actions">
             <div className="farmer-account-pill">
@@ -68,6 +71,14 @@ export default function BuyerLayout() {
         <main className="farmer-content">
           <Outlet />
         </main>
+        <MobileFabMenu
+          title="Actions"
+          actions={[
+            { label: "Marketplace", to: "/buyer/market", icon: "market" },
+            { label: "Overview", to: "/buyer", icon: "overview" },
+            { label: "Sign out", icon: "shield", onClick: logout },
+          ]}
+        />
       </section>
     </div>
   );

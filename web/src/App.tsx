@@ -32,6 +32,7 @@ import ProviderLeads from "./pages/ProviderLeads";
 import ProviderMarketing from "./pages/ProviderMarketing";
 import PublicMarketplace from "./pages/PublicMarketplace";
 import PublicListingDetails from "./pages/PublicListingDetails";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -59,6 +60,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <PwaInstallPrompt />
       <Routes>
         <Route path="/admin/login" element={isAdminAuthed ? <Navigate to="/admin" /> : <AdminLogin />} />
         <Route path="/admin" element={isAdminAuthed ? <AdminLayout /> : <Navigate to="/admin/login" />}>

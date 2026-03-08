@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../state/auth";
 import { Icon } from "../components/Visuals";
 import BrandLogo from "../components/BrandLogo";
+import MobileFabMenu from "../components/MobileFabMenu";
 
 const navItems = [
   { label: "Overview", path: "/dashboard", subtitle: "Home", icon: "overview" as const },
@@ -53,12 +54,14 @@ export default function FarmerLayout() {
 
       <section className="farmer-main">
         <header className="farmer-topbar">
-          <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
-            Menu
-          </button>
-          <div>
-            <div className="label">{current.subtitle}</div>
-            <div className="farmer-topbar-heading">{current.label}</div>
+          <div className="dashboard-topbar-main">
+            <button className="farmer-menu-toggle" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
+              Menu
+            </button>
+            <div className="dashboard-topbar-copy">
+              <div className="label">{current.subtitle}</div>
+              <div className="farmer-topbar-heading">{current.label}</div>
+            </div>
           </div>
           <div className="farmer-topbar-actions">
             <div className="farmer-quick-links">
@@ -81,6 +84,16 @@ export default function FarmerLayout() {
         <main className="farmer-content">
           <Outlet />
         </main>
+        <MobileFabMenu
+          title="Actions"
+          actions={[
+            { label: "Open brain", to: "/dashboard/brain", icon: "brain" },
+            { label: "Open market", to: "/dashboard/market", icon: "market" },
+            { label: "Farm profile", to: "/dashboard/farm", icon: "farm" },
+            { label: "History", to: "/dashboard/history", icon: "history" },
+            { label: "Sign out", icon: "shield", onClick: logout },
+          ]}
+        />
       </section>
     </div>
   );

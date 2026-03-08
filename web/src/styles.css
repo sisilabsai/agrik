@@ -74,12 +74,11 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 20px clamp(22px, 3vw, 40px);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
+  padding: 12px clamp(18px, 2.4vw, 32px);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(11, 11, 11, 0.08);
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
 }
 
@@ -97,7 +96,7 @@ a {
 
 .brand-logo-image {
   display: block;
-  width: clamp(148px, 14vw, 220px);
+  width: clamp(108px, 10vw, 156px);
   height: auto;
 }
 
@@ -143,6 +142,17 @@ a {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.dashboard-topbar-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.dashboard-topbar-copy {
+  min-width: 0;
 }
 
 .btn {
@@ -1067,6 +1077,7 @@ a {
 .farmer-topbar-heading {
   font-size: 24px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .farmer-topbar-actions {
@@ -3948,6 +3959,126 @@ a {
   gap: 12px;
 }
 
+.pwa-runtime-stack {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 32;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 28px));
+}
+
+.pwa-install-prompt,
+.pwa-status-banner {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(17, 68, 45, 0.16);
+  box-shadow: 0 18px 36px rgba(5, 20, 12, 0.16);
+  backdrop-filter: blur(16px);
+}
+
+.pwa-status-banner strong,
+.pwa-install-copy strong {
+  font-size: 14px;
+}
+
+.pwa-status-banner span,
+.pwa-install-copy span {
+  color: rgba(11, 11, 11, 0.68);
+  line-height: 1.45;
+}
+
+.pwa-status-banner.offline {
+  border-color: rgba(196, 129, 37, 0.25);
+}
+
+.pwa-status-banner.online {
+  border-color: rgba(31, 111, 61, 0.22);
+}
+
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mobile-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 28;
+  display: none;
+  justify-items: end;
+  gap: 10px;
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.mobile-fab.hidden {
+  opacity: 0;
+  transform: translateY(120px);
+  pointer-events: none;
+}
+
+.mobile-fab-actions {
+  display: grid;
+  gap: 10px;
+  width: min(270px, calc(100vw - 36px));
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.mobile-fab.open .mobile-fab-actions {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.mobile-fab-action,
+.mobile-fab-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 68, 45, 0.18);
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--color-black);
+  box-shadow: 0 18px 32px rgba(5, 20, 12, 0.16);
+}
+
+.mobile-fab-action {
+  width: 100%;
+  padding: 12px 14px;
+  font-weight: 600;
+}
+
+.mobile-fab-trigger {
+  padding: 14px 16px;
+  min-width: 136px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-color: rgba(17, 68, 45, 0.3);
+}
+
+.mobile-fab-trigger-icon,
+.mobile-fab-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-fab-action-label {
+  text-align: left;
+}
+
 .admin-page {
   display: grid;
   gap: 12px;
@@ -5060,6 +5191,10 @@ a {
     align-items: center;
   }
 
+  .dashboard-topbar-main {
+    flex: 1;
+  }
+
   .admin-shell {
     grid-template-columns: 1fr;
   }
@@ -5182,13 +5317,17 @@ a {
   }
 
   .topbar {
-    padding: 20px;
-    align-items: flex-start;
+    padding: 10px 16px;
+    align-items: center;
     flex-wrap: wrap;
   }
 
   .brand {
     flex: 1;
+  }
+
+  .topbar .brand-logo-image {
+    width: 112px;
   }
 
   .brand-sub {
@@ -5317,18 +5456,48 @@ a {
   }
 
   .farmer-topbar {
-    flex-wrap: wrap;
-    align-items: flex-start;
-    padding: 18px 20px;
+    align-items: center;
+    padding: 14px 16px;
   }
 
   .farmer-topbar-actions {
-    width: 100%;
-    justify-content: flex-start;
+    display: none;
   }
 
   .farmer-content {
-    padding: 12px;
+    padding: 12px 12px 104px;
+  }
+
+  .dashboard-topbar-main {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .dashboard-topbar-copy .label {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+  }
+
+  .farmer-topbar-heading {
+    font-size: 17px;
+    line-height: 1.15;
+  }
+
+  .mobile-fab {
+    display: grid;
+  }
+
+  .pwa-runtime-stack {
+    left: 14px;
+    right: 14px;
+    width: auto;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .pwa-install-prompt,
+  .pwa-status-banner {
+    border-radius: 16px;
+    padding: 12px 14px;
   }
 
   .farmer-page-header h1 {
@@ -5409,17 +5578,16 @@ a {
   }
 
   .admin-topbar {
-    flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
+    padding: 14px 16px;
   }
 
   .admin-topbar-actions {
-    width: 100%;
-    justify-content: flex-start;
+    display: none;
   }
 
   .admin-topbar-heading {
-    font-size: 20px;
+    font-size: 17px;
   }
 
   .admin-split {
@@ -5439,6 +5607,10 @@ a {
   .admin-filter-bar select,
   .admin-filter-bar .btn {
     width: 100%;
+  }
+
+  .admin-content {
+    padding: 14px 14px 104px;
   }
 
   .admin-row {
