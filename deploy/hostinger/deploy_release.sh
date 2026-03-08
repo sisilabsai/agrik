@@ -45,6 +45,33 @@ echo "==> Linking production env files"
 ln -sfn "$BACKEND_ENV" "$APP_DIR/.env"
 ln -sfn "$WEB_ENV" "$APP_DIR/web/.env.production.local"
 
+python_import_check() {
+  "$VENV_DIR/bin/python" - <<'PY'
+import importlib
+import os
+import sys
+from dotenv import dotenv_values
+
+env_path = "/var/www/agrik.co/app/.env"
+values = dotenv_values(env_path)
+for key, value in values.items():
+    if value is not None:
+        os.environ[key] = value
+
+required = ["fastapi", "uvicorn", "sqlalchemy", "httpx", "edge_tts", "faster_whisper"]
+missing = []
+for module in required:
+    try:
+        importlib.import_module(module)
+    except Exception:
+        missing.append(module)
+
+if missing:
+    print(",".join(missing))
+    sys.exit(1)
+PY
+}
+
 if [ ! -x "$VENV_DIR/bin/python" ]; then
   echo "==> Python virtualenv missing, creating $VENV_DIR"
   if ! command -v python3 >/dev/null 2>&1; then
@@ -67,6 +94,13 @@ if [ ! -f "$BACKEND_HASH_FILE" ] || [ "$(<"$BACKEND_HASH_FILE")" != "$BACKEND_HA
   printf '%s' "$BACKEND_HASH" > "$BACKEND_HASH_FILE"
 else
   echo "==> Backend dependencies unchanged, skipping reinstall"
+  if ! python_import_check >/tmp/agrik-missing-python-modules.log 2>&1; then
+    echo "==> Backend runtime modules missing, reinstalling dependencies"
+    cat /tmp/agrik-missing-python-modules.log || true
+    "$VENV_DIR/bin/python" -m pip install --upgrade pip
+    "$VENV_DIR/bin/pip" install -r "$APP_DIR/requirements.txt"
+    printf '%s' "$BACKEND_HASH" > "$BACKEND_HASH_FILE"
+  fi
 fi
 
 if ! command -v npm >/dev/null 2>&1; then
