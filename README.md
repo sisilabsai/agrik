@@ -79,6 +79,14 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
     - `HF_AUDIO_MAX_FILE_MB=12`
     - `HF_STT_MODEL=openai/whisper-large-v3-turbo`
     - Optional STT alternates: `HF_STT_ALT_MODELS=openai/whisper-large-v3`
+    - Local STT fallback:
+      - `STT_FALLBACK_BACKEND=faster-whisper`
+      - `FASTER_WHISPER_MODEL_SIZE=small`
+      - Optional fully local path: `FASTER_WHISPER_MODEL_PATH=/var/www/agrik.co/runtime/models/faster-whisper/small`
+      - `FASTER_WHISPER_MODEL_DIR=runtime/models/faster-whisper`
+      - `FASTER_WHISPER_DEVICE=cpu`
+      - `FASTER_WHISPER_COMPUTE_TYPE=int8`
+      - Optional tuning: `FASTER_WHISPER_CPU_THREADS=4`, `FASTER_WHISPER_NUM_WORKERS=1`, `FASTER_WHISPER_BEAM_SIZE=1`, `FASTER_WHISPER_VAD_FILTER=true`
     - Optional voice-profile default: `TTS_VOICE_PROFILE_DEFAULT=uganda` (`auto`, `uganda`, `east_africa`, `neutral`)
     - `HF_TTS_MODEL=intronhealth/afro-tts` (when using HF backend)
     - `HF_TTS_MAX_CHARS=800`
@@ -143,6 +151,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
         - `PIPER_NOISE_SCALE=0.667`
         - `PIPER_NOISE_W=0.8`
     - Install dependency: `pip install edge-tts` (fast path)
+    - Local STT dependency: `pip install faster-whisper`
     - Optional local afro-tts dependency: `pip install -r requirements-coqui.txt` (Python 3.9-3.11 only; use a 3.11 venv)
   - `HF_VISION_MODEL=<vision_model_id>` (example: `linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification`)
   - Optional: `HF_VISION_ALT_MODELS=modelA,modelB` (used for compare/deep-analysis mode)
@@ -179,6 +188,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
 - Frontend supports still photo upload and short video upload (up to 5 seconds, converted to still frames before submission).
 - Web audio endpoints:
   - `POST /chat/transcribe-audio` (multipart `audio` + optional `locale_hint`) for STT.
+    - If Hugging Face STT is unreachable, the app falls back to local `faster-whisper` when enabled.
   - `POST /chat/synthesize-audio` (`text`, optional `locale_hint`, optional `voice_hint`) for TTS.
 - Realtime voice websocket scaffold:
   - `WS /chat/realtime-voice?token=<jwt>`
@@ -190,6 +200,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
   - assistant reply playback for TTS (with optional auto-speak)
   - voice profile selector (`Ugandan`, `East African`, `Neutral`, `Auto`) applied to TTS + realtime voice
   - realtime voice scaffold controls: session connect + live chunk stream
+  - optional local STT fallback via `python app/scripts/setup_faster_whisper.py`
 
 ### Ugandan voice setup (practical)
 - Fastest no-training path:

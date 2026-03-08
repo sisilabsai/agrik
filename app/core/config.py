@@ -252,6 +252,16 @@ def get_ai_provider_config() -> dict:
         "hf_stt_alt_models": [
             token.strip() for token in os.getenv("HF_STT_ALT_MODELS", "").split(",") if token.strip()
         ],
+        "stt_fallback_backend": os.getenv("STT_FALLBACK_BACKEND", "faster-whisper").strip().lower(),
+        "faster_whisper_model_size": os.getenv("FASTER_WHISPER_MODEL_SIZE", "small").strip(),
+        "faster_whisper_model_path": os.getenv("FASTER_WHISPER_MODEL_PATH", "").strip(),
+        "faster_whisper_model_dir": os.getenv("FASTER_WHISPER_MODEL_DIR", "runtime/models/faster-whisper").strip(),
+        "faster_whisper_device": os.getenv("FASTER_WHISPER_DEVICE", "cpu").strip().lower(),
+        "faster_whisper_compute_type": os.getenv("FASTER_WHISPER_COMPUTE_TYPE", "int8").strip().lower(),
+        "faster_whisper_cpu_threads": _to_int(os.getenv("FASTER_WHISPER_CPU_THREADS", "4"), 4),
+        "faster_whisper_num_workers": _to_int(os.getenv("FASTER_WHISPER_NUM_WORKERS", "1"), 1),
+        "faster_whisper_beam_size": _to_int(os.getenv("FASTER_WHISPER_BEAM_SIZE", "1"), 1),
+        "faster_whisper_vad_filter": _to_bool(os.getenv("FASTER_WHISPER_VAD_FILTER", "true"), True),
         "tts_voice_profile_default": os.getenv("TTS_VOICE_PROFILE_DEFAULT", "auto").strip().lower(),
         "hf_tts_model": os.getenv("HF_TTS_MODEL", "facebook/mms-tts-eng").strip(),
         "hf_tts_max_chars": _to_int(os.getenv("HF_TTS_MAX_CHARS", "800"), 800),

@@ -51,6 +51,9 @@ _COQUI_LOCK = threading.Lock()
 _COQUI_MODEL: Any = None
 _COQUI_CONFIG: Any = None
 _COQUI_MODEL_TAG: str = ""
+_FASTER_WHISPER_LOCK = threading.Lock()
+_FASTER_WHISPER_MODEL: Any = None
+_FASTER_WHISPER_MODEL_TAG: str = ""
 
 VOICE_PROFILE_ALIASES = {
     "auto": "auto",
@@ -75,6 +78,11 @@ LOCALE_VOICE_PROFILE_MAP = {
     "ach": "uganda",
     "teo": "uganda",
     "sw": "east_africa",
+}
+
+LOCALE_STT_LANGUAGE_MAP = {
+    "en": "en",
+    "sw": "sw",
 }
 
 
@@ -294,6 +302,27 @@ def _normalize_audio_mime(content: bytes, mime_type: str, filename: str) -> str:
     if len(content) >= 12 and content[4:8] == b"ftyp":
         return "audio/mp4"
     return "application/octet-stream"
+
+
+def _audio_suffix_for_mime(mime_type: str, filename: str) -> str:
+    suffix = Path(str(filename or "").strip()).suffix.lower()
+    if suffix in SUPPORTED_AUDIO_SUFFIXES:
+        return suffix
+
+    normalized_mime = str(mime_type or "").split(";")[0].strip().lower()
+    if normalized_mime in {"audio/wav", "audio/x-wav", "audio/wave"}:
+        return ".wav"
+    if normalized_mime in {"audio/mpeg", "audio/mp3"}:
+        return ".mp3"
+    if normalized_mime == "audio/ogg":
+        return ".ogg"
+    if normalized_mime == "audio/webm":
+        return ".webm"
+    if normalized_mime in {"audio/mp4", "audio/x-m4a"}:
+        return ".m4a"
+    if normalized_mime == "audio/flac":
+        return ".flac"
+    return ".wav"
 
 
 def _parse_error_detail(payload: Any, fallback_text: str = "") -> str:
@@ -1097,7 +1126,129 @@ async def _synthesize_elevenlabs(
     )
 
 
-async def _transcribe_validated_audio(
+def _whisper_language_for_locale(locale_hint: str | None) -> str | None:
+    normalized = normalize_locale_hint(locale_hint)
+    if not normalized:
+        return None
+    return LOCALE_STT_LANGUAGE_MAP.get(normalized)
+
+
+def _ensure_faster_whisper_model(cfg: Dict[str, Any]) -> Any:
+    global _FASTER_WHISPER_MODEL, _FASTER_WHISPER_MODEL_TAG
+
+    configured_model_path = str(cfg.get("faster_whisper_model_path") or "").strip()
+    model_size = str(cfg.get("faster_whisper_model_size") or "small").strip() or "small"
+    model_dir = str(cfg.get("faster_whisper_model_dir") or "runtime/models/faster-whisper").strip() or "runtime/models/faster-whisper"
+    device = str(cfg.get("faster_whisper_device") or "cpu").strip().lower() or "cpu"
+    compute_type = str(cfg.get("faster_whisper_compute_type") or "int8").strip().lower() or "int8"
+    cpu_threads = max(1, int(cfg.get("faster_whisper_cpu_threads", 4)))
+    num_workers = max(1, int(cfg.get("faster_whisper_num_workers", 1)))
+    model_source = configured_model_path or model_size
+    model_tag = f"{model_source}|{model_dir}|{device}|{compute_type}|{cpu_threads}|{num_workers}"
+
+    with _FASTER_WHISPER_LOCK:
+        if _FASTER_WHISPER_MODEL is not None and _FASTER_WHISPER_MODEL_TAG == model_tag:
+            return _FASTER_WHISPER_MODEL
+
+        try:
+            from faster_whisper import WhisperModel  # type: ignore
+        except ImportError as exc:
+            raise AudioUnavailableError(
+                "faster-whisper is not installed. Run `pip install faster-whisper`."
+            ) from exc
+
+        download_root = Path(model_dir)
+        download_root.mkdir(parents=True, exist_ok=True)
+        model_name_or_path = configured_model_path or model_size
+        try:
+            model = WhisperModel(
+                model_name_or_path,
+                device=device,
+                compute_type=compute_type,
+                cpu_threads=cpu_threads,
+                num_workers=num_workers,
+                download_root=str(download_root),
+            )
+        except Exception as exc:
+            raise AudioUnavailableError(
+                f"Failed to load faster-whisper model '{model_name_or_path}': {_trim(exc, 260)}"
+            ) from exc
+
+        _FASTER_WHISPER_MODEL = model
+        _FASTER_WHISPER_MODEL_TAG = model_tag
+        return _FASTER_WHISPER_MODEL
+
+
+def _transcribe_faster_whisper(
+    *,
+    validated: ValidatedAudio,
+    locale_hint: str | None,
+    cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    model = _ensure_faster_whisper_model(cfg)
+    beam_size = max(1, int(cfg.get("faster_whisper_beam_size", 1)))
+    vad_filter = bool(cfg.get("faster_whisper_vad_filter", True))
+    language_hint = _whisper_language_for_locale(locale_hint)
+
+    fd, temp_path = tempfile.mkstemp(
+        prefix="agrik-stt-",
+        suffix=_audio_suffix_for_mime(validated.mime_type, validated.filename),
+    )
+    os.close(fd)
+    path = Path(temp_path)
+    try:
+        path.write_bytes(validated.content)
+        try:
+            segments, info = model.transcribe(
+                str(path),
+                language=language_hint,
+                beam_size=beam_size,
+                vad_filter=vad_filter,
+            )
+        except Exception as exc:
+            raise AudioUnavailableError(f"faster-whisper transcription failed: {_trim(exc, 260)}") from exc
+
+        parts = [str(segment.text or "").strip() for segment in segments if str(segment.text or "").strip()]
+        transcript = " ".join(parts).strip()
+        if not transcript:
+            raise AudioUnavailableError("faster-whisper returned no transcript.")
+
+        detected_language = getattr(info, "language", None) or detect_language(transcript, normalize_locale_hint(locale_hint))[0]
+        probability = getattr(info, "language_probability", None)
+        try:
+            confidence = round(float(probability), 3) if probability is not None else 0.78
+        except (TypeError, ValueError):
+            confidence = 0.78
+        return {
+            "transcript": transcript,
+            "language": str(detected_language or "en"),
+            "confidence": confidence,
+            "model": (
+                f"faster-whisper:{str(cfg.get('faster_whisper_model_path') or '').strip() or str(cfg.get('faster_whisper_model_size') or 'small').strip() or 'small'}"
+            ),
+        }
+    finally:
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            logger.warning("Failed to clean up faster-whisper temp file: %s", path)
+
+
+async def _transcribe_local_faster_whisper_async(
+    *,
+    validated: ValidatedAudio,
+    locale_hint: str | None,
+    cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    return await asyncio.to_thread(
+        _transcribe_faster_whisper,
+        validated=validated,
+        locale_hint=locale_hint,
+        cfg=cfg,
+    )
+
+
+async def _transcribe_huggingface_audio(
     *,
     validated: ValidatedAudio,
     locale_hint: str | None,
@@ -1218,6 +1369,46 @@ async def _transcribe_validated_audio(
                 _mark_model_unavailable(model)
 
     raise AudioUnavailableError(last_error or "Speech-to-text request failed. Try again.")
+
+
+async def _transcribe_validated_audio(
+    *,
+    validated: ValidatedAudio,
+    locale_hint: str | None,
+    cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    remote_error = ""
+    local_error = ""
+
+    try:
+        return await _transcribe_huggingface_audio(
+            validated=validated,
+            locale_hint=locale_hint,
+            cfg=cfg,
+        )
+    except AudioUnavailableError as exc:
+        remote_error = str(exc)
+        logger.warning("Remote STT unavailable for %s: %s", validated.filename, remote_error)
+
+    fallback_backend = str(cfg.get("stt_fallback_backend") or "").strip().lower()
+    if fallback_backend in {"faster-whisper", "faster_whisper", "fasterwhisper"}:
+        try:
+            result = await _transcribe_local_faster_whisper_async(
+                validated=validated,
+                locale_hint=locale_hint,
+                cfg=cfg,
+            )
+            logger.info(
+                "Local faster-whisper STT fallback succeeded file=%s model=%s",
+                validated.filename,
+                result.get("model", "faster-whisper"),
+            )
+            return result
+        except AudioUnavailableError as exc:
+            local_error = str(exc)
+            logger.warning("Local faster-whisper STT fallback failed for %s: %s", validated.filename, local_error)
+
+    raise AudioUnavailableError(local_error or remote_error or "Speech-to-text request failed. Try again.")
 
 
 async def transcribe_audio_upload(upload: UploadFile, locale_hint: str | None = None) -> Dict[str, Any]:
