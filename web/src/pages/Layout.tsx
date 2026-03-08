@@ -1,6 +1,7 @@
 ﻿import { Link, NavLink, Outlet } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../state/auth";
+import BrandLogo from "../components/BrandLogo";
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
@@ -16,8 +17,7 @@ export default function AppLayout() {
     <div className="app-shell">
       <header className={`topbar${menuOpen ? " open" : ""}`}>
         <Link to="/" className="brand" onClick={() => setMenuOpen(false)}>
-          <span className="brand-mark">AGRIK</span>
-          <span className="brand-sub">Digital Extension Intelligence For The Farmers</span>
+          <BrandLogo />
         </Link>
         <button
           className="menu-toggle"

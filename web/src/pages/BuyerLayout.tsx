@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../state/auth";
 import { Icon } from "../components/Visuals";
+import BrandLogo from "../components/BrandLogo";
 
 const navItems = [
   { label: "Buyer Dashboard", path: "/buyer", subtitle: "Demand overview", icon: "overview" as const },
@@ -28,8 +29,7 @@ export default function BuyerLayout() {
       <div className="farmer-backdrop" onClick={() => setMenuOpen(false)} aria-hidden="true" />
       <aside className="farmer-sidebar">
         <div className="farmer-brand">
-          <div className="farmer-brand-mark">AGRIK</div>
-          <div className="farmer-brand-sub">Buyer Portal</div>
+          <BrandLogo subtitle="Buyer Portal" compact />
         </div>
         <nav className="farmer-nav">
           {navItems.map((item) => (

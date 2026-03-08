@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import { useAdminAuth } from "../state/adminAuth";
 import { Icon } from "../components/Visuals";
+import BrandLogo from "../components/BrandLogo";
 
 const navItems = [
   { label: "Overview", path: "/admin", subtitle: "Ops snapshot", icon: "overview" as const },
@@ -34,6 +35,9 @@ export default function AdminLayout() {
     <div className={`admin-shell ${sidebarOpen ? "sidebar-open" : ""}`}>
       <div className="admin-backdrop" onClick={() => setSidebarOpen(false)} aria-hidden="true" />
       <aside className="admin-sidebar">
+        <div className="admin-brand">
+          <BrandLogo subtitle="Admin Control" compact />
+        </div>
         <nav className="admin-nav">
           {navItems.map((item) => (
             <NavLink

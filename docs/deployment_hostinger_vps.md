@@ -280,10 +280,11 @@ What the release script does:
 
 - updates the git checkout
 - links shared env files
-- installs backend dependencies
-- installs frontend dependencies
+- installs backend dependencies only when requirements change
+- installs frontend dependencies only when package files change
 - runs the Vite production build
 - runs Alembic migrations
+- preserves an existing live Nginx site file unless `FORCE_NGINX_DEPLOY=1`
 - restarts systemd services
 
 If your production branch is not `main`, pass the correct branch name instead.
@@ -335,6 +336,12 @@ systemctl reload nginx
 ```
 
 If an old `agrik.co` config already exists, replace it instead of creating a second active config.
+
+Important deployment guard:
+
+- the deploy script now preserves an existing `/etc/nginx/sites-available/agrik.co` by default
+- this prevents wiping certbot-managed SSL configuration on later releases
+- only use `FORCE_NGINX_DEPLOY=1 bash deploy/hostinger/deploy_release.sh main` when you intentionally want to replace the live Nginx site file
 
 Recommended safe sequence:
 

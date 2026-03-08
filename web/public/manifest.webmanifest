@@ -1,0 +1,36 @@
+{
+  "name": "AGRIK",
+  "short_name": "AGRIK",
+  "description": "Digital extension intelligence, advisory, market access, and farm operations for farmers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f5ef",
+  "theme_color": "#11442d",
+  "categories": ["productivity", "business", "agriculture"],
+  "icons": [
+    {
+      "src": "/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

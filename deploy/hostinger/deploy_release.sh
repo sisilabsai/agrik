@@ -8,7 +8,14 @@ SHARED_DIR="$APP_ROOT/shared"
 RUNTIME_DIR="$APP_ROOT/runtime"
 BACKEND_ENV="$SHARED_DIR/.env"
 WEB_ENV="$SHARED_DIR/web.env.production"
+DEPLOY_STATE_DIR="$SHARED_DIR/deploy-state"
+BACKEND_HASH_FILE="$DEPLOY_STATE_DIR/backend-deps.sha256"
+FRONTEND_HASH_FILE="$DEPLOY_STATE_DIR/frontend-deps.sha256"
 BRANCH="${1:-main}"
+
+hash_files() {
+  sha256sum "$@" | sha256sum | awk '{print $1}'
+}
 
 cd "$APP_DIR"
 
@@ -23,7 +30,7 @@ if [ ! -f "$WEB_ENV" ]; then
 fi
 
 echo "==> Preparing shared directories"
-mkdir -p "$RUNTIME_DIR/market_media" "$RUNTIME_DIR/models" "$APP_DIR/runtime"
+mkdir -p "$RUNTIME_DIR/market_media" "$RUNTIME_DIR/models" "$APP_DIR/runtime" "$DEPLOY_STATE_DIR"
 
 echo "==> Updating git checkout"
 git fetch --all --prune
@@ -52,9 +59,15 @@ if [ ! -x "$VENV_DIR/bin/python" ]; then
   exit 1
 fi
 
-echo "==> Installing backend dependencies"
-"$VENV_DIR/bin/python" -m pip install --upgrade pip
-"$VENV_DIR/bin/pip" install -r "$APP_DIR/requirements.txt"
+BACKEND_HASH="$(hash_files "$APP_DIR/requirements.txt")"
+if [ ! -f "$BACKEND_HASH_FILE" ] || [ "$(<"$BACKEND_HASH_FILE")" != "$BACKEND_HASH" ]; then
+  echo "==> Installing backend dependencies"
+  "$VENV_DIR/bin/python" -m pip install --upgrade pip
+  "$VENV_DIR/bin/pip" install -r "$APP_DIR/requirements.txt"
+  printf '%s' "$BACKEND_HASH" > "$BACKEND_HASH_FILE"
+else
+  echo "==> Backend dependencies unchanged, skipping reinstall"
+fi
 
 if ! command -v npm >/dev/null 2>&1; then
   echo "==> npm missing, installing Node.js 20"
@@ -66,9 +79,15 @@ if ! command -v npm >/dev/null 2>&1; then
   apt-get install -y nodejs
 fi
 
-echo "==> Installing frontend dependencies"
 cd "$APP_DIR/web"
-npm ci
+FRONTEND_HASH="$(hash_files "$APP_DIR/web/package.json" "$APP_DIR/web/package-lock.json")"
+if [ ! -d "$APP_DIR/web/node_modules" ] || [ ! -f "$FRONTEND_HASH_FILE" ] || [ "$(<"$FRONTEND_HASH_FILE")" != "$FRONTEND_HASH" ]; then
+  echo "==> Installing frontend dependencies"
+  npm ci
+  printf '%s' "$FRONTEND_HASH" > "$FRONTEND_HASH_FILE"
+else
+  echo "==> Frontend dependencies unchanged, skipping npm ci"
+fi
 
 echo "==> Building frontend"
 npm run build
@@ -102,7 +121,11 @@ systemctl enable agrik-api agrik-retry-worker agrik-weather-alert-worker agrik-p
 
 echo "==> Installing/updating Nginx site"
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
-cp "$APP_DIR/deploy/hostinger/nginx/agrik.co.conf" /etc/nginx/sites-available/agrik.co
+if [ ! -f /etc/nginx/sites-available/agrik.co ] || [ "${FORCE_NGINX_DEPLOY:-0}" = "1" ]; then
+  cp "$APP_DIR/deploy/hostinger/nginx/agrik.co.conf" /etc/nginx/sites-available/agrik.co
+else
+  echo "==> Preserving existing /etc/nginx/sites-available/agrik.co to avoid overwriting SSL/certbot state"
+fi
 ln -sfn /etc/nginx/sites-available/agrik.co /etc/nginx/sites-enabled/agrik.co
 rm -f /etc/nginx/sites-enabled/agrik.co.conf
 if [ -L /etc/nginx/sites-enabled/default ]; then
