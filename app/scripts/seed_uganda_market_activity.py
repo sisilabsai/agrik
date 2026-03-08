@@ -29,7 +29,6 @@ INPUT_USERS_PATH = Path("runtime/seeds/test_users_uganda.json")
 OUTPUT_SUMMARY_PATH = Path("runtime/seeds/market_activity_uganda.json")
 
 SEED_SOURCE = "uganda_market_activity_v1"
-SEED_TAG = "[seed:uganda_market_activity_v1]"
 TOTAL_UGANDA_DISTRICTS = 135
 
 CROP_PRICE_BASE: dict[str, float] = {
@@ -181,13 +180,16 @@ def _ensure_listing(
             MarketListing.role == role,
             MarketListing.crop == crop,
             MarketListing.location_id == location.id,
-            MarketListing.description.ilike(f"%{SEED_TAG}%"),
         )
         .first()
     )
 
-    description = f"{district_name} {crop} {role} listing {SEED_TAG}"
-    media_urls = [f"https://images.agrik.app/{crop.replace(' ', '-')}.jpg"]
+    description = (
+        f"Clean {crop} available in {district_name} for quick coordination."
+        if role == "seller"
+        else f"Looking for reliable {crop} supply in {district_name}."
+    )
+    media_urls: list[str] = []
 
     if existing:
         existing.quantity = quantity
@@ -196,7 +198,7 @@ def _ensure_listing(
         existing.currency = "UGX"
         existing.grade = existing.grade or "standard"
         existing.description = description
-        existing.contact_name = existing.contact_name or "AGRIK Market Desk"
+        existing.contact_name = existing.contact_name or "AGRIK Demo Contact"
         existing.contact_phone = existing.contact_phone or user.phone
         existing.contact_whatsapp = existing.contact_whatsapp or user.phone
         existing.media_urls = media_urls
@@ -217,7 +219,7 @@ def _ensure_listing(
         currency="UGX",
         grade="standard",
         description=description,
-        contact_name="AGRIK Market Desk",
+        contact_name="AGRIK Demo Contact",
         contact_phone=user.phone,
         contact_whatsapp=user.phone,
         media_urls=media_urls,
@@ -284,13 +286,12 @@ def _ensure_service(
             MarketService.user_id == user.id,
             MarketService.service_type == service_type,
             MarketService.location_id == location.id,
-            MarketService.description.ilike(f"%{SEED_TAG}%"),
         )
         .first()
     )
 
-    description = f"{service_type.title()} support for {district_name} producers {SEED_TAG}"
-    media_urls = [f"https://images.agrik.app/service-{service_type.replace(' ', '-')}.jpg"]
+    description = f"{service_type.replace('_', ' ').title()} support for farmers in {district_name}."
+    media_urls: list[str] = []
 
     if existing:
         existing.description = description
@@ -691,7 +692,6 @@ def main() -> None:
             "generated_at": _now_utc().isoformat(),
             "input_users_path": str(INPUT_USERS_PATH),
             "seed_source": SEED_SOURCE,
-            "seed_tag": SEED_TAG,
             "district_groups_in_users_file": len(ordered_groups),
             "districts_seeded": len(ordered_groups) - len(skipped_districts),
             "districts_skipped": skipped_districts,

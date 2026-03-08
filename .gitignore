@@ -23,6 +23,12 @@ web/dist/
 *.dump
 
 runtime/
+!runtime/
+runtime/*
+!runtime/seeds/
+runtime/seeds/*
+!runtime/seeds/test_users_uganda.json
+!runtime/seeds/market_activity_uganda.json
 web/.env
 web/.env.*
 !web/.env.example
@@ -37,4 +43,3 @@ coverage/
 htmlcov/
 
 .tmp-uganda-geo-data/
-

@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
@@ -30,6 +31,7 @@ from app.services.uganda_map import get_district_centroids
 from app.services.uganda_locations import list_districts, list_parishes, summary
 
 router = APIRouter()
+logger = logging.getLogger("agrik.reference")
 
 
 def _normalize_name(value: str | None) -> str:
@@ -247,7 +249,11 @@ def uganda_live_map(
         > 0
     ]
     max_refresh = max(0, min(int(refresh_limit), 40)) if refresh else 0
-    centroids = get_district_centroids(active_district_names, max_refresh=max_refresh)
+    try:
+        centroids = get_district_centroids(active_district_names, max_refresh=max_refresh)
+    except Exception as exc:
+        logger.exception("Failed to resolve Uganda district centroids: %s", exc)
+        centroids = {}
 
     markers: list[UgandaLiveMapDistrictOut] = []
     for district_name in active_district_names:

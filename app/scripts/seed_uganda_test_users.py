@@ -1,9 +1,14 @@
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy.exc import IntegrityError
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from app.db.models import AuthUser, AuthUserProfile
 from app.db.session import SessionLocal
@@ -15,7 +20,7 @@ from app.services.phone_numbers import normalize_ugandan_phone, phone_lookup_var
 from app.services.uganda_locations import list_districts, list_parishes
 
 DEFAULT_USER_PASSWORD = "User@AGRIK2026"
-EMAIL_DOMAIN = "agrik.app"
+EMAIL_DOMAIN = "agrik.co"
 PHONE_LOCAL_BASE = 780000000
 OUTPUT_PATH = Path("runtime/seeds/test_users_uganda.json")
 ROLES = ["farmer", "buyer", "offtaker", "service_provider", "input_supplier"]
@@ -103,14 +108,23 @@ def _unique_name(seed_index: int, role_index: int, used: set[str]) -> str:
 
 
 def _unique_email(local_base: str, used_locals: set[str]) -> str:
-    base = _slugify(local_base)[:60] or "user"
+    base = _slugify(local_base).replace(".", "")[:60] or "user"
     candidate = base
     suffix = 2
     while candidate in used_locals:
-        candidate = f"{base[:56]}.{suffix}"
+        candidate = f"{base[:56]}{suffix}"
         suffix += 1
     used_locals.add(candidate)
     return f"{candidate}@{EMAIL_DOMAIN}"
+
+
+def _email_local_base(full_name: str) -> str:
+    parts = [part for part in re.split(r"\s+", full_name.strip()) if part]
+    if not parts:
+        return "agrikuser"
+    first = parts[0]
+    last = parts[-1] if len(parts) > 1 else ""
+    return f"{first}{last}".lower()
 
 
 def _profile_payload(role: str, district_name: str, crop_pool: list[str], service_pool: list[str], seed_index: int) -> dict:
@@ -126,7 +140,16 @@ def _profile_payload(role: str, district_name: str, crop_pool: list[str], servic
             "focus_crops": [],
         }
 
-    organization_name = f"{district_name} AGRIK Cooperative"
+    if role == "buyer":
+        organization_name = f"{district_name} Produce Buyers Hub"
+    elif role == "offtaker":
+        organization_name = f"{district_name} Harvest Offtake Desk"
+    elif role == "service_provider":
+        organization_name = f"{district_name} Farm Services Hub"
+    elif role == "input_supplier":
+        organization_name = f"{district_name} Input Supply Center"
+    else:
+        organization_name = f"{district_name} AGRIK Network"
     if role in {"service_provider", "input_supplier"}:
         service_a = service_pool[seed_index % len(service_pool)]
         service_b = service_pool[(seed_index + 3) % len(service_pool)]
@@ -150,7 +173,7 @@ def _seed_admin(db) -> str:
     admin = seed_admin_user(db)
     if not admin:
         return "No admin seeded. Set ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD in .env."
-    return f"Seeded admin: {admin.email}"
+    return "Admin seed confirmed."
 
 
 def _find_user_by_phone(db, phone: str) -> AuthUser | None:
@@ -185,7 +208,7 @@ def main() -> None:
                 parish = parishes[role_index % len(parishes)]
                 phone = f"+256{PHONE_LOCAL_BASE + seed_index:09d}"
                 full_name = _unique_name(seed_index, role_index, used_names)
-                email = _unique_email(f"{full_name}.{district.name}.{role}.{seed_index + 1}", used_email_locals)
+                email = _unique_email(_email_local_base(full_name), used_email_locals)
                 profile = _profile_payload(role, district.name, crop_pool, service_pool, seed_index)
 
                 user = _find_user_by_phone(db, phone)
@@ -246,7 +269,7 @@ def main() -> None:
                         {
                             "role": role,
                             "email": email,
-                            "seed_source": "uganda_test_users_v1",
+                            "seed_source": "uganda_test_users_v2",
                         }
                     )
                     auth_profile.profile_data = profile_data

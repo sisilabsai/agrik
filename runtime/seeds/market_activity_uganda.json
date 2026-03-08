@@ -1,0 +1,208 @@
+{
+  "generated_at": "2026-03-08T19:48:00+00:00",
+  "input_users_path": "runtime\\seeds\\test_users_uganda.json",
+  "seed_source": "uganda_market_activity_v1",
+  "district_groups_in_users_file": 135,
+  "districts_seeded": 135,
+  "districts_skipped": [],
+  "uganda_district_target": 135,
+  "created": {},
+  "updated": {
+    "market_listings": 270,
+    "market_offers": 405,
+    "market_services": 270,
+    "market_alerts": 270,
+    "market_prices": 270
+  },
+  "totals": {
+    "market_users": 680,
+    "market_locations": 546,
+    "market_listings": 275,
+    "market_offers": 406,
+    "market_services": 271,
+    "market_alerts": 310,
+    "market_prices": 273
+  },
+  "sampled_districts": [
+    {
+      "district_id": "98",
+      "district": "Abim",
+      "parish": "Abongepach",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1170.0,
+      "demand_price": 1490.0
+    },
+    {
+      "district_id": "68",
+      "district": "Adjumani",
+      "parish": "Adidi",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 935.0,
+      "demand_price": 1855.0
+    },
+    {
+      "district_id": "23",
+      "district": "Agago",
+      "parish": "Abilonino",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1100.0,
+      "demand_price": 1420.0
+    },
+    {
+      "district_id": "116",
+      "district": "Alebtong",
+      "parish": "Abangoimany",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 865.0,
+      "demand_price": 1785.0
+    },
+    {
+      "district_id": "85",
+      "district": "Amolatar",
+      "parish": "Abalodyang",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1030.0,
+      "demand_price": 2015.0
+    },
+    {
+      "district_id": "109",
+      "district": "Amudat",
+      "parish": "Abiliyep",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 795.0,
+      "demand_price": 2380.0
+    },
+    {
+      "district_id": "86",
+      "district": "Amuria",
+      "parish": "Abeko",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 960.0,
+      "demand_price": 1945.0
+    },
+    {
+      "district_id": "99",
+      "district": "Amuru",
+      "parish": "Acwera",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 725.0,
+      "demand_price": 2310.0
+    },
+    {
+      "district_id": "1",
+      "district": "Apac",
+      "parish": "Abedi",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 890.0,
+      "demand_price": 1875.0
+    },
+    {
+      "district_id": "2",
+      "district": "Arua",
+      "parish": "Abindi",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 655.0,
+      "demand_price": 2240.0
+    },
+    {
+      "district_id": "100",
+      "district": "Budaka",
+      "parish": "Budaka Ward",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 820.0,
+      "demand_price": 1805.0
+    },
+    {
+      "district_id": "106",
+      "district": "Bududa",
+      "parish": "Bikimaswa",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 585.0,
+      "demand_price": 2170.0
+    },
+    {
+      "district_id": "69",
+      "district": "Bugiri",
+      "parish": "Bubalya Ward",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1415.0,
+      "demand_price": 1735.0
+    },
+    {
+      "district_id": "36",
+      "district": "Bugweri",
+      "parish": "Bubenge",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 1180.0,
+      "demand_price": 2100.0
+    },
+    {
+      "district_id": "20",
+      "district": "Buhweju",
+      "parish": "Bitsya",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1345.0,
+      "demand_price": 1665.0
+    },
+    {
+      "district_id": "110",
+      "district": "Buikwe",
+      "parish": "Bbinga",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 1110.0,
+      "demand_price": 2030.0
+    },
+    {
+      "district_id": "107",
+      "district": "Bukedea",
+      "parish": "Abilaep",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1275.0,
+      "demand_price": 1595.0
+    },
+    {
+      "district_id": "126",
+      "district": "Bukomansimbi",
+      "parish": "Bukango",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 1040.0,
+      "demand_price": 1960.0
+    },
+    {
+      "district_id": "87",
+      "district": "Bukwo",
+      "parish": "Amanang",
+      "supply_crop": "banana",
+      "demand_crop": "sorghum",
+      "supply_price": 1205.0,
+      "demand_price": 1525.0
+    },
+    {
+      "district_id": "117",
+      "district": "Bulambuli",
+      "parish": "Bufukhula",
+      "supply_crop": "cassava",
+      "demand_crop": "millet",
+      "supply_price": 970.0,
+      "demand_price": 1890.0
+    }
+  ]
+}

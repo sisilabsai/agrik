@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 import httpx
 
 from app.core.config import get_open_meteo_config
+from app.services.uganda_centroids import find_centroid_for_query
 
 logger = logging.getLogger("agrik.weather")
 
@@ -22,10 +23,30 @@ def geocode_location(query: str) -> Optional[Dict[str, Any]]:
             data = response.json()
     except (httpx.HTTPError, ValueError) as exc:
         logger.warning("Geocode failed for '%s': %s", query, exc)
+        fallback = find_centroid_for_query(query)
+        if fallback:
+            return {
+                "latitude": fallback.get("latitude"),
+                "longitude": fallback.get("longitude"),
+                "name": fallback.get("district"),
+                "admin1": "Uganda",
+                "admin2": None,
+                "country": "Uganda",
+            }
         return None
 
     results = data.get("results") if isinstance(data, dict) else None
     if not results:
+        fallback = find_centroid_for_query(query)
+        if fallback:
+            return {
+                "latitude": fallback.get("latitude"),
+                "longitude": fallback.get("longitude"),
+                "name": fallback.get("district"),
+                "admin1": "Uganda",
+                "admin2": None,
+                "country": "Uganda",
+            }
         return None
     first = results[0]
     if not isinstance(first, dict):
