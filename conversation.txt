@@ -1,0 +1,44 @@
+Title: Analyze these crop photos and recommend imm...
+Created: 2026-02-17T11:03:11.965Z
+
+USER [2026-02-17T11:03:25.289Z]
+Analyze these crop photos and recommend immediate actions.
+
+[Attached media: 6 photos]
+
+ASSISTANT [2026-02-17T11:03:50.923Z]
+### Quick diagnosis
+- **Crop & stage:** Maize, ~2.5 ac in Agule, Pallisa; planted 11 Feb 2026, now at V6‑V8 (30‑45 days after sowing).
+- **Soil:** Loamy, good fertility, fast‑draining; no irrigation source.
+- **Water situation:** Relying on seasonal rain; dry spells possible.
+- **AI visual output:** Low‑confidence detections – Gray Leaf Spot (≤ 0.16), early‑blight‑type lesions (≤ 0.08), and “invalid/unknown” patterns (≥ 0.92). Confidence is low, so field verification is essential before any chemical action.
+- **Key risk:** Potential foliar disease that could reduce leaf area and yield, especially under dry stress.
+
+### Immediate actions (today)
+
+| Action | How to do it | Why it matters |
+|--------|--------------|----------------|
+| Scout the field visually | Walk the entire 2.5 ac, focusing on edges and lower canopy. Look for rectangular brown lesions with yellow halos (Gray Leaf Spot) and dark concentric spots (early‑blight‑like). Take close‑up photos of top and underside of 5‑10 symptomatic leaves per block. | Confirms whether AI‑identified diseases are present and gauges severity before any spray. |
+| Record symptom details | Note row, GPS (if available), leaf age (young vs old), lesion size, % leaf affected, and take photos. Use a notebook or phone app. | Creates baseline data to track spread and to share with extension agents. |
+| Isolate hot‑spot plants | Mark clusters of symptomatic plants with sticks or flags; avoid walking through them with tools that could spread spores. | Limits inoculum movement across the field. |
+| Avoid overhead irrigation | If watering manually, apply water at the base of plants only; do not spray foliage. | Wet leaf surfaces favor fungal growth and spore dispersal. |
+| Prepare fungicide mix (pending confirmation) | Have a copper‑based fungicide (e.g., copper oxychloride) or a locally approved systemic (e.g., propiconazole) ready in a clean spray bottle, but **do not apply yet**. | Saves time if disease is confirmed; copper is low‑risk for smallholders. |
+| Contact local extension officer | Call the Pallisa District Agricultural Office (or nearest extension agent), describe observations, and request a field visit or remote verification. | Provides expert confirmation and guidance on appropriate treatment. |
+
+### 7‑day plan
+1. **Day 1‑2:** Complete field scouting, photo documentation, and symptom logging.
+2. **Day 3:** Share photos and notes with extension officer; request diagnosis confirmation.
+3. **Day 4:** If disease is confirmed, select the recommended fungicide and calculate the required dosage for 2.5 ac.
+4. **Day 5:** Apply fungicide to confirmed hotspots using a calibrated sprayer, following label rates and safety precautions.
+5. **Day 6‑7:** Re‑inspect treated and untreated areas; note any change in lesion size or new symptoms. Adjust future spray schedule if needed.
+
+### Monitoring checklist
+- [ ] At least 20 plants inspected across different field zones.
+- [ ] Lesion type, size, and leaf age recorded for each inspected plant.
+- [ ] GPS or row reference logged for every hotspot.
+- [ ] Photos of top and underside of symptomatic leaves saved and dated.
+- [
+
+### Sources used
+- cassava
+- sweet potato...

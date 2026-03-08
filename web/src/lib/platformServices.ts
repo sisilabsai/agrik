@@ -1,0 +1,17 @@
+export const DEFAULT_PLATFORM_SERVICES = [
+  "AI Advisory (SMS)",
+  "AI Voice Assistant",
+  "Smartphone App Premium",
+  "Advanced Advisory (Image Diagnosis)",
+  "Extension Dashboard",
+  "Weather Farming Alerts",
+  "Geospatial Intelligence & Soil Insights",
+  "Pest & Disease Alerts",
+  "Market Price Intelligence",
+  "Agroecology Coaching",
+  "Digital Farm Memory",
+  "Insurance Enablement",
+  "Credit & Input Financing",
+  "Digital Financial Identity",
+  "Yield & Profit Forecasting",
+];

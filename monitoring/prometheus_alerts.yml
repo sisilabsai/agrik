@@ -1,0 +1,38 @@
+groups:
+- name: agrik-alerts
+  rules:
+  - alert: HighHttp5xxRate
+    expr: (sum(rate(agrik_http_requests_total{status=~"5.."}[5m])) / sum(rate(agrik_http_requests_total[5m]))) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High 5xx rate"
+      description: "More than 5% of requests are failing with 5xx in the last 5m."
+
+  - alert: HighLatencyP95
+    expr: histogram_quantile(0.95, sum(rate(agrik_http_request_duration_seconds_bucket[5m])) by (le)) > 1.5
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High request latency (p95)"
+      description: "95th percentile latency is above 1.5s for 10m."
+
+  - alert: OutboundQueueBacklogHigh
+    expr: agrik_outbound_queue_backlog > 200
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Outbound SMS queue backlog high"
+      description: "Pending outbound messages exceeded 200 for 10m."
+
+  - alert: OutboundSmsFailureRateHigh
+    expr: (sum(rate(agrik_outbound_send_total{status="failed"}[10m])) / sum(rate(agrik_outbound_send_total[10m]))) > 0.2
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Outbound SMS failure rate high"
+      description: "More than 20% of outbound SMS attempts failed in the last 10m."

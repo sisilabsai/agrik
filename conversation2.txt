@@ -1,0 +1,995 @@
+Title: hello
+Created: 2026-02-17T07:20:10.190Z
+
+USER [2026-02-10T16:53:58.081568+03:00]
+hello
+
+ASSISTANT [2026-02-10T16:53:58.215520+03:00]
+Thanks. I need a bit more detail (crop, stage, location) to give grounded advice.
+
+USER [2026-02-10T23:25:41.653043+03:00]
+I am from lira
+
+ASSISTANT [2026-02-10T23:25:42.481840+03:00]
+Thanks. I need a bit more detail (crop, stage, location) to give grounded advice.
+
+USER [2026-02-16T16:10:38.794985+03:00]
+My maize leaves are yellow. What should I do first today?
+
+ASSISTANT [2026-02-16T16:10:43.038337+03:00]
+GRIK AI: **1. Likely cause**
+
+- **Yellowing of young maize leaves** in a 3‑week‑old stand in Pallisa is most often due to **water stress or nitrogen deficiency**.  
+- The lack of water access (you mentioned “no water access”) makes water stress a prime suspect.  
+- If the leaves are also *stunted* or show *yellow
+
+Sources: Src: maize; maize
+
+USER [2026-02-16T16:15:59.762826+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:16:05.085078+03:00]
+GRIK AI: **GRIK AI – Maize Yellow‑Leaf Advisory (Agule, Pallisa)**  
+
+---
+
+### 1. Likely cause  
+- **Water stress** – you noted no water access and the next rain is 7 days away.  
+- **Nitrogen deficiency** – young maize needs a nitrogen boost; yellowing of the first leaves is a classic sign.  
+- (Less likely at this stage: early fall‑armyworm or maize streak virus, but keep an eye for frass or streaks.)
+
+---
+
+### 2. Immediate actions (today)
+
+| Action | How to do it | Why it matters |
+|--------|--------------|----------------|
+| **Check soil moisture** | Stick a finger 5 cm into the soil. If dry, the crop is thirsty. | Confirms water stress. |
+| **Apply water if possible** | If you have a small water source (e.g., a borehole, rain‑catching tank, or a neighbor’s tap), irrigate the whole 2.5 acres to a depth of ~5 cm. | Restores turgor, stops leaf yellowing. |
+| **Apply a quick‑release nitrogen** | Use a 20‑30 kg / ha granular N (e.g., urea or ammonium sulfate).
+
+Sources: Src: maize; maize
+
+USER [2026-02-16T16:17:06.020091+03:00]
+My beans have leaf spots. Give me immediate actions.
+
+ASSISTANT [2026-02-16T16:17:11.243674+03:00]
+GRIK AI: beans Phaseolus vulgaris Highlands: climbing beans with staking. Lower elevations: bush beans for shorter cycles. Select varieties recommended for your zone. Confirm current releases with district extension offices or NARO. Angular leaf spot: brown angular lesions, defoliation. Root rots: yellowing, stunting, poor roots. Bean fly: stem lesions near soil line. Plant at onset of rains with 50 cm x 10-15 cm spacing....
+
+Weather signal: Lira, Northern Region, Uganda: next meaningful rain expected on 2026-02-18.
+
+Monitor the field every 2-3 days and escalate to extension support if symptoms spread.
+
+Sources: Src: beans; groundnut
+
+USER [2026-02-16T16:18:27.433347+03:00]
+My cassava has white spots and leaves curling. Help.
+
+ASSISTANT [2026-02-16T16:18:33.788565+03:00]
+GRIK AI: **GRIK AI – Cassava Pest Advisory (Agule, Pallisa)**  
+
+---
+
+###
+
+Sources: Src: cassava; cassava
+
+USER [2026-02-16T16:22:45.588012+03:00]
+My banana plants look weak. what should I do this week?
+
+ASSISTANT [2026-02-16T16:22:51.235119+03:00]
+GRIK AI: banana Musa spp. Lake basin and central areas: favorable moisture. Western highlands: cooler temperatures, manage disease pressure. Select varieties recommended for your zone. Confirm current releases with district extension offices or research stations. Banana weevil: damaged corms, weak plants. Xanthomonas wilt: yellowing, bacterial ooze. Nematodes: reduced root mass, poor anchorage. Use clean planting material...
+
+Weather signal: Lira, Northern Region, Uganda: next meaningful rain expected on 2026-02-18.
+
+Monitor the field every 2-3 days and escalate to extension support if symptoms spread.
+
+Sources: Src: banana; banana
+
+USER [2026-02-16T16:39:35.978007+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:39:42.650712+03:00]
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:40:35.391909+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:40:41.399699+03:00]
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:41:11.212621+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:41:17.056723+03:00]
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:41:52.297364+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:41:58.606205+03:00]
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:43:24.109770+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:43:29.944793+03:00]
+### Quick diagnosis
+-
+
+#
+
+## Quick diagnosis
+Yellow maize leaves in Agule, Pallisa can be caused by:
+1. **Nitrogen deficiency** – common in loamy soils that have been cropped for a season.
+2. **Maize streak virus (MSV)** – produces yell...
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:43:55.513032+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:44:01.494869+03:00]
+### Quick diagnosis
+- Quick diagnosis Yellow maize leaves in Agule, Pallisa can be caused by: 1.
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+#
+
+## Immediate actions (today)
+| Action | How to do it | Why it matters |
+|
+
+---
+
+|
+
+---
+
+|
+
+---
+
+|
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+#
+
+## 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+#
+
+## Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+#
+
+## Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+#
+
+## Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:45:08.012272+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:45:14.088003+03:00]
+### Quick diagnosis
+- Quick diagnosis Yellow maize leaves in
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:45:41.594183+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:45:49.016432+03:00]
+### Quick diagnosis
+- Yellow maize leaves in Agule, Pallisa can be caused by: 1. Nitrogen deficiency – common in loamy soils that have been cropped for a season. 2. Maize streak virus (MSV) –...
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T16:50:15.936280+03:00]
+My beans have leaf spots. Give immediate actions.
+
+ASSISTANT [2026-02-16T16:50:19.775143+03:00]
+### Quick diagnosis
+- Eby’obulamu eby’ebyokulya eby’ebyokulya (bean leaf spots) by’akasanyizo ku bintu eby’okusanyiza obulamu bw’ebyokulya. Eby’obulamu by’ebyokulya by’akasanyizo by’akasanyizo...
+- beans Phaseolus vulgaris Highlands: climbing beans with staking. Lower elevations: bush beans for shorter cycles. Select varieties recommended for your zone. Confirm current releases with district extension offices or NARO. Angular leaf spot: brown angular lesions, defoliation...
+- Likely stress is affecting beans; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout beans sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check beans every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your beans currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- beans
+- groundnut
+- groundnut
+- coffee
+
+USER [2026-02-16T16:52:38.059735+03:00]
+Give me a weekly protection checklist for Maize.
+
+ASSISTANT [2026-02-16T16:52:42.587978+03:00]
+### Quick diagnosis
+- Eby’obulamu eby’ebyokulya eby’ebyokulya eby’obulamu obulungi ku mazi g’ebyokulya. - Yellowning : ebitera nitrogen deficiency, MSV (Maize Streak Virus) oba obulamu obw’ekikadde....
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T17:00:39.729430+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T17:00:44.386892+03:00]
+### Quick diagnosis
+- Yellow maize leaves in Agule, Pallisa can be caused mainly by nitrogen deficiency or Maize Streak Virus (MSV) . - Nitrogen deficiency is common in loamy soils that have been...
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+
+USER [2026-02-16T17:32:23.449599+03:00]
+Create a 7-day pest monitoring plan for my crop.
+
+ASSISTANT [2026-02-16T17:32:56.851199+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- cassava Manihot esculenta Northern/Eastern: early-maturing and drought-tolerant varieties. Central: high-yield varieties for fresh and processing markets. Western highlands: manage erosion and waterlogging. Use disease-tolerant varieties where available. Confirm recommended va...
+- Likely stress is affecting cassava; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout cassava sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check cassava every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your cassava currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- cassava
+- banana
+- beans
+- sweet potato
+- Hemp (https://en.wikipedia.org/wiki/Hemp)
+
+USER [2026-02-16T17:34:52.445144+03:00]
+generate a location-specific 7-day plan for Agule, Pallisa, my cassava is 2 months old
+
+ASSISTANT [2026-02-16T17:35:24.322337+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- cassava Manihot esculenta Northern/Eastern: early-maturing and drought-tolerant varieties. Central: high-yield varieties for fresh and processing markets. Western highlands: manage erosion and waterlogging. Use disease-tolerant varieties where available. Confirm recommended va...
+- Likely stress is affecting cassava; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout cassava sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check cassava every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your cassava currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- cassava
+- cassava
+- banana
+- coffee
+- Cassava mosaic viruses (https://en.wikipedia.org/wiki/Cassava_mosaic_viruses)
+
+USER [2026-02-16T17:38:48.247474+03:00]
+What's the best season for planting maize in my area, can you be specific on your predictions and much more
+
+ASSISTANT [2026-02-16T17:39:13.510454+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- coffee
+- sweet potato
+- cassava
+- Maize (https://en.wikipedia.org/wiki/Maize)
+
+USER [2026-02-16T17:44:19.494809+03:00]
+How can i maximize my maize farm harvest, i just completed planting
+
+ASSISTANT [2026-02-16T17:44:58.171942+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- maize Zea mays Eastern/Northern: early-maturing and drought-tolerant varieties. Central: high-yield hybrids with good storage quality. Western highlands: manage for cooler, wetter conditions. Use varieties recommended for your agro-ecological zone. Confirm current releases wit...
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- millet
+- sorghum
+- Maize (https://en.wikipedia.org/wiki/Maize)
+
+USER [2026-02-16T18:03:08.350086+03:00]
+My beans have leaf spots. Give immediate actions.
+
+ASSISTANT [2026-02-16T18:03:28.770958+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- Likely stress is affecting beans; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+- Use targeted action after confirming the most probable cause.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout beans sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check beans every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your beans currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- beans
+- groundnut
+- groundnut
+- coffee
+- Integrated pest management (https://en.wikipedia.org/wiki/Integrated_pest_management)
+
+USER [2026-02-16T18:04:58.298609+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T18:05:31.916618+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+- Use targeted action after confirming the most probable cause.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+- Maize (https://en.wikipedia.org/wiki/Maize)
+
+USER [2026-02-16T18:09:05.135012+03:00]
+My maize leaves are yellow. Give immediate actions.
+
+ASSISTANT [2026-02-16T18:09:30.849139+03:00]
+### Language mode
+- Luganda translation support is currently in pilot mode, so core guidance is kept in English for reliability.
+
+### Quick diagnosis
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+- Use targeted action after confirming the most probable cause.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- maize
+- maize
+- cassava
+- Maize (https://en.wikipedia.org/wiki/Maize)
+
+USER [2026-02-16T18:10:11.017905+03:00]
+Create a 7-day pest monitoring plan for my crop.
+
+ASSISTANT [2026-02-16T18:10:18.368430+03:00]
+### Quick diagnosis
+- Likely stress is affecting cassava; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+- Use targeted action after confirming the most probable cause.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout cassava sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check cassava every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your cassava currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- cassava
+- banana
+- beans
+- Genetically modified organism (https://en.wikipedia.org/wiki/Genetically_modified_organism)
+
+USER [2026-02-16T18:23:09.352469+03:00]
+what are the best crops to plant this month in my area
+
+ASSISTANT [2026-02-16T18:23:16.589921+03:00]
+### Quick diagnosis
+- Likely stress is affecting Maize; confirm symptoms before treatment.
+- Prioritize field scouting and targeted action in affected sections.
+- No reliable weather/market signal is currently available.
+- Use targeted action after confirming the most probable cause.
+
+### Immediate actions (today)
+| Action | How to do it | Why it matters |
+| --- | --- | --- |
+| Scout Maize sections | Check at least 20 plants across the plot and note symptom spread. | Confirms whether damage is localized or widespread. |
+| Remove heavily affected material | Remove badly damaged leaves/plants and keep them away from the field. | Reduces spread pressure quickly. |
+| Apply targeted agronomy correction | Use locally recommended fertilizer or pest control only after confirming the cause. | Avoids wasting input and reduces crop shock. |
+
+### 7-day plan
+- Re-check Maize every 2-3 days and record symptom changes.
+- Adjust watering, weeding, and nutrient timing based on field response.
+- Escalate to district extension support if symptoms worsen.
+
+### Monitoring checklist
+- New leaf color and vigor
+- Pest signs (holes, frass, streaks, wilt spread)
+- Soil moisture and drainage status
+
+### Follow-up questions
+1. What growth stage is your Maize currently in?
+2. What exact symptoms do you see on leaves/stems/roots?
+3. Should I generate a location-specific 7-day plan for Agule, Pallisa?
+
+### Sources used
+- Pea shoots (https://en.wikipedia.org/wiki/Pea_shoots)

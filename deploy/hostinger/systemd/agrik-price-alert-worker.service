@@ -1,0 +1,16 @@
+[Unit]
+Description=AGRIK Price Alert Worker
+After=network.target agrik-api.service
+Wants=agrik-api.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/agrik.co/app
+EnvironmentFile=/var/www/agrik.co/shared/.env
+ExecStart=/var/www/agrik.co/venv/bin/python app/scripts/price_alert_worker.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

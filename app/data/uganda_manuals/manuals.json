@@ -1,0 +1,216 @@
+[
+  {
+    "crop": "maize",
+    "scientific_name": "Zea mays",
+    "regional_notes": [
+      "Eastern/Northern: early-maturing and drought-tolerant varieties.",
+      "Central: high-yield hybrids with good storage quality.",
+      "Western highlands: manage for cooler, wetter conditions."
+    ],
+    "varietal_notes": [
+      "Use varieties recommended for your agro-ecological zone.",
+      "Confirm current releases with district extension offices or NARO."
+    ],
+    "symptoms": [
+      "Fall armyworm: windowed leaves, frass in whorl.",
+      "Maize streak virus: yellow streaks, stunting.",
+      "Stem borers: dead heart, entry holes with frass."
+    ],
+    "advice": [
+      "Plant at onset of rains with 75 cm x 25-30 cm spacing.",
+      "Apply compost/manure and top-dress with urea 3-4 weeks after emergence.",
+      "Scout weekly and remove egg masses early."
+    ]
+  },
+  {
+    "crop": "beans",
+    "scientific_name": "Phaseolus vulgaris",
+    "regional_notes": [
+      "Highlands: climbing beans with staking.",
+      "Lower elevations: bush beans for shorter cycles."
+    ],
+    "varietal_notes": [
+      "Select varieties recommended for your zone.",
+      "Confirm current releases with district extension offices or NARO."
+    ],
+    "symptoms": [
+      "Angular leaf spot: brown angular lesions, defoliation.",
+      "Root rots: yellowing, stunting, poor roots.",
+      "Bean fly: stem lesions near soil line."
+    ],
+    "advice": [
+      "Plant at onset of rains with 50 cm x 10-15 cm spacing.",
+      "Weed at 2-3 weeks and before flowering.",
+      "Rotate with cereals to reduce disease pressure."
+    ]
+  },
+  {
+    "crop": "cassava",
+    "scientific_name": "Manihot esculenta",
+    "regional_notes": [
+      "Northern/Eastern: early-maturing and drought-tolerant varieties.",
+      "Central: high-yield varieties for fresh and processing markets.",
+      "Western highlands: manage erosion and waterlogging."
+    ],
+    "varietal_notes": [
+      "Use disease-tolerant varieties where available.",
+      "Confirm recommended varieties with district extension offices or NARO."
+    ],
+    "symptoms": [
+      "Cassava mosaic disease: mottled leaves, stunting.",
+      "Cassava brown streak: chlorosis on leaves, brown root necrosis.",
+      "Mealybugs: cottony masses, stunting.",
+      "Green mites: yellow speckling and leaf drop."
+    ],
+    "advice": [
+      "Use healthy cuttings and plant at onset of rains.",
+      "Rogue infected plants early.",
+      "Spacing: 1 m x 1 m (adjust for intercropping)."
+    ]
+  },
+  {
+    "crop": "groundnut",
+    "scientific_name": "Arachis hypogaea",
+    "regional_notes": [
+      "Northern/Eastern: drought-tolerant varieties and early planting.",
+      "Central: manage humidity to reduce leaf spot pressure."
+    ],
+    "varietal_notes": [
+      "Use varieties recommended for your zone.",
+      "Confirm current releases with district extension offices or NARO."
+    ],
+    "symptoms": [
+      "Leaf spot: brown spots with yellow halos.",
+      "Aphids: curling leaves, sticky honeydew.",
+      "Aflatoxin risk: moldy kernels from poor drying."
+    ],
+    "advice": [
+      "Plant at start of rains with 45-60 cm x 10-15 cm spacing.",
+      "Weed early; avoid disturbing pegs after flowering.",
+      "Dry quickly and store in dry conditions."
+    ]
+  },
+  {
+    "crop": "banana",
+    "scientific_name": "Musa spp.",
+    "regional_notes": [
+      "Lake basin and central areas: favorable moisture.",
+      "Western highlands: cooler temperatures, manage disease pressure."
+    ],
+    "varietal_notes": [
+      "Select varieties recommended for your zone.",
+      "Confirm current releases with district extension offices or research stations."
+    ],
+    "symptoms": [
+      "Banana weevil: damaged corms, weak plants.",
+      "Xanthomonas wilt: yellowing, bacterial ooze.",
+      "Nematodes: reduced root mass, poor anchorage."
+    ],
+    "advice": [
+      "Use clean planting material and apply mulch.",
+      "Spacing around 2.5 m x 2.5 m for matooke.",
+      "Remove and destroy infected plants."
+    ]
+  },
+  {
+    "crop": "coffee",
+    "scientific_name": "Coffea arabica / robusta",
+    "regional_notes": [
+      "Arabica: eastern and western highlands.",
+      "Robusta: central and western lowlands."
+    ],
+    "varietal_notes": [
+      "Use recommended varieties for altitude and zone.",
+      "Confirm with UCDA or district extension offices."
+    ],
+    "symptoms": [
+      "Coffee wilt: sudden wilting and death.",
+      "Coffee berry disease: black lesions on berries.",
+      "Leaf rust: orange powdery spots."
+    ],
+    "advice": [
+      "Plant at onset of rains with 2.5 m x 2.5 m spacing.",
+      "Mulch and apply organic manure.",
+      "Prune regularly and remove diseased branches."
+    ]
+  },
+  {
+    "crop": "sorghum",
+    "scientific_name": "Sorghum bicolor",
+    "regional_notes": [
+      "Northern/Eastern: early-maturing and drought-tolerant types.",
+      "Western highlands: manage for cooler conditions and bird pressure."
+    ],
+    "varietal_notes": [
+      "Choose drought-tolerant varieties for drier zones.",
+      "Confirm recommended varieties with district extension offices."
+    ],
+    "symptoms": [
+      "Striga: stunted plants and poor grain fill.",
+      "Smut: black powdery heads.",
+      "Bird damage: missing grain heads near harvest."
+    ],
+    "advice": [
+      "Plant at onset of rains with 60-75 cm x 15-20 cm spacing.",
+      "Weed early to reduce Striga.",
+      "Harvest when panicles are dry and grain is hard."
+    ]
+  },
+  {
+    "crop": "millet",
+    "scientific_name": "Pearl millet / Finger millet",
+    "regional_notes": [
+      "Northern/Eastern: drought-tolerant types perform well.",
+      "Highlands: finger millet with good disease tolerance."
+    ],
+    "varietal_notes": [
+      "Choose varieties suitable to your zone and market use."
+    ],
+    "symptoms": [
+      "Blast: gray/brown lesions on leaves and heads.",
+      "Birds: grain loss near harvest."
+    ],
+    "advice": [
+      "Plant at onset of rains with 45-60 cm spacing.",
+      "Harvest promptly to reduce bird damage."
+    ]
+  },
+  {
+    "crop": "rice",
+    "scientific_name": "Oryza sativa",
+    "regional_notes": [
+      "Eastern lowlands: lowland rice is common.",
+      "Western/Northern uplands: upland varieties may be preferred."
+    ],
+    "varietal_notes": [
+      "Choose lowland or upland varieties based on field type."
+    ],
+    "symptoms": [
+      "Rice blast: lesions on leaves and panicles.",
+      "Stem borers: dead hearts in vegetative stage."
+    ],
+    "advice": [
+      "Plant at onset of rains or transplant for lowlands.",
+      "Maintain proper water management in lowlands."
+    ]
+  },
+  {
+    "crop": "sweet potato",
+    "scientific_name": "Ipomoea batatas",
+    "regional_notes": [
+      "Eastern/Northern: drought-tolerant varieties favored.",
+      "Central: varieties for fresh markets and processing."
+    ],
+    "varietal_notes": [
+      "Orange-fleshed varieties preferred for nutrition where available."
+    ],
+    "symptoms": [
+      "Sweet potato weevil: holes and tunnels in roots.",
+      "Virus diseases: leaf distortion and stunting."
+    ],
+    "advice": [
+      "Plant vines at onset of rains with 75-90 cm spacing.",
+      "Harvest on time to reduce weevil damage."
+    ]
+  }
+]

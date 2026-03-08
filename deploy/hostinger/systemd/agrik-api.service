@@ -1,0 +1,17 @@
+[Unit]
+Description=AGRIK FastAPI API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/www/agrik.co/app
+EnvironmentFile=/var/www/agrik.co/shared/.env
+ExecStart=/var/www/agrik.co/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

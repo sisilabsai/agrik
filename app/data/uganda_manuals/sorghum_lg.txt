@@ -1,0 +1,14 @@
+LUGANDA VERSION (STARTER TRANSLATION)
+EKIKULI: SORGHUM
+
+ENFA Y'OKULIMA
+- Londa ebika ebirina okwewanira enjala.
+- Simbira ku ntandikwa y’enkuba.
+
+EBIMULI N'OBULWADDE (EBIMANYISO)
+- Striga: ebimera biba bitono.
+- Bird damage: ebinyonyi byonona emmere.
+
+AMAGEZI
+- Kozesa embuto ennungi.
+- Funa okukebera ennimiro kyonna.

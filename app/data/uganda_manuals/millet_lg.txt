@@ -1,0 +1,12 @@
+LUGANDA VERSION (STARTER TRANSLATION)
+EKIKULI: MILLET
+
+ENFA Y'OKULIMA
+- Simbira ku ntandikwa y’enkuba.
+
+EBIMULI N'OBULWADDE (EBIMANYISO)
+- Blast: ebipande ku bikoola.
+- Bird damage: ebinyonyi byonona.
+
+AMAGEZI
+- Weebaale mu nnimiro obudde bwenyini.

@@ -1,0 +1,185 @@
+[
+  {
+    "crop": "maize",
+    "cards": [
+      {
+        "name": "Fall armyworm",
+        "symptoms": ["Windowed leaves", "Frass in whorl", "Ragged leaf edges"],
+        "actions": ["Scout weekly", "Remove egg masses", "Use IPM"],
+        "treatment_thresholds": ["Treat if 20% of plants show fresh damage", "Prioritize early growth stage fields"],
+        "local_suppliers": ["District input dealers", "Registered agrovet shops", "Cooperative stores"]
+      },
+      {
+        "name": "Maize streak virus",
+        "symptoms": ["Yellow streaks on leaves", "Stunting"],
+        "actions": ["Use tolerant varieties", "Control volunteer plants"],
+        "treatment_thresholds": ["Rogue infected seedlings early to reduce spread"],
+        "local_suppliers": ["District seed suppliers", "NARO recommended seed outlets"]
+      }
+    ]
+  },
+  {
+    "crop": "beans",
+    "cards": [
+      {
+        "name": "Angular leaf spot",
+        "symptoms": ["Brown angular lesions", "Defoliation"],
+        "actions": ["Use clean seed", "Rotate crops"],
+        "treatment_thresholds": ["If lesions increase after first flowering, intensify sanitation"],
+        "local_suppliers": ["District seed suppliers", "Registered agrovet shops"]
+      },
+      {
+        "name": "Bean fly",
+        "symptoms": ["Stem lesions near soil line", "Seedling wilting"],
+        "actions": ["Plant early", "Remove heavily infested plants"],
+        "treatment_thresholds": ["Treat if 10% of seedlings show wilting"],
+        "local_suppliers": ["Local agrovet shops", "Cooperative stores"]
+      }
+    ]
+  },
+  {
+    "crop": "cassava",
+    "cards": [
+      {
+        "name": "Cassava mosaic disease",
+        "symptoms": ["Mottled leaves", "Stunting"],
+        "actions": ["Use clean cuttings", "Rogue infected plants"],
+        "treatment_thresholds": ["Rogue early if mosaic observed in first 3 months"],
+        "local_suppliers": ["District extension offices", "Registered nursery suppliers"]
+      },
+      {
+        "name": "Cassava brown streak",
+        "symptoms": ["Leaf chlorosis", "Brown root necrosis"],
+        "actions": ["Use tolerant varieties", "Destroy infected plants"],
+        "treatment_thresholds": ["If root necrosis appears, remove plant immediately"],
+        "local_suppliers": ["District extension offices", "NARO recommended outlets"]
+      }
+    ]
+  },
+  {
+    "crop": "groundnut",
+    "cards": [
+      {
+        "name": "Leaf spot",
+        "symptoms": ["Brown spots with yellow halos", "Leaf drop"],
+        "actions": ["Rotate crops", "Improve field sanitation"],
+        "treatment_thresholds": ["Treat if defoliation exceeds 20% before pod fill"],
+        "local_suppliers": ["Local agrovet shops", "Cooperative stores"]
+      },
+      {
+        "name": "Aflatoxin risk",
+        "symptoms": ["Moldy kernels", "Poor drying"],
+        "actions": ["Dry quickly", "Store dry and clean"],
+        "treatment_thresholds": ["If moisture remains high after 48 hours, re-dry"],
+        "local_suppliers": ["Local storage suppliers", "Cooperative stores"]
+      }
+    ]
+  },
+  {
+    "crop": "banana",
+    "cards": [
+      {
+        "name": "Banana weevil",
+        "symptoms": ["Damaged corms", "Weak plants"],
+        "actions": ["Use clean planting material", "Remove infested plants"],
+        "treatment_thresholds": ["Act if 5% of mats show fresh corm damage"],
+        "local_suppliers": ["Tissue culture nurseries", "District input dealers"]
+      },
+      {
+        "name": "Xanthomonas wilt",
+        "symptoms": ["Yellowing", "Bacterial ooze"],
+        "actions": ["Remove infected mats", "Disinfect tools"],
+        "treatment_thresholds": ["Remove entire mat on first confirmed case"],
+        "local_suppliers": ["District extension offices", "Registered agrovet shops"]
+      }
+    ]
+  },
+  {
+    "crop": "coffee",
+    "cards": [
+      {
+        "name": "Coffee wilt",
+        "symptoms": ["Sudden wilting", "Plant death"],
+        "actions": ["Remove infected trees", "Use resistant varieties"],
+        "treatment_thresholds": ["Rogue immediately on first wilt signs"],
+        "local_suppliers": ["UCDA registered nurseries", "District extension offices"]
+      },
+      {
+        "name": "Coffee berry disease",
+        "symptoms": ["Black lesions on berries"],
+        "actions": ["Prune and sanitize", "Harvest ripe cherries only"],
+        "treatment_thresholds": ["Treat if lesions appear before peak flowering"],
+        "local_suppliers": ["UCDA registered nurseries", "Local agrovet shops"]
+      }
+    ]
+  },
+  {
+    "crop": "sorghum",
+    "cards": [
+      {
+        "name": "Striga",
+        "symptoms": ["Stunted plants", "Poor grain fill"],
+        "actions": ["Weed early", "Rotate crops"],
+        "treatment_thresholds": ["If Striga appears in patches, remove before flowering"],
+        "local_suppliers": ["District input dealers", "Cooperative stores"]
+      },
+      {
+        "name": "Smut",
+        "symptoms": ["Black powdery heads"],
+        "actions": ["Use clean seed", "Remove infected heads"],
+        "treatment_thresholds": ["Remove affected heads immediately to prevent spread"],
+        "local_suppliers": ["District seed suppliers", "Registered agrovet shops"]
+      }
+    ]
+  },
+  {
+    "crop": "millet",
+    "cards": [
+      {
+        "name": "Blast",
+        "symptoms": ["Gray/brown lesions on leaves", "Head infection"],
+        "actions": ["Use clean seed", "Reduce humidity with spacing"],
+        "treatment_thresholds": ["If lesions expand before head formation, intensify spacing and sanitation"],
+        "local_suppliers": ["District seed suppliers", "Cooperative stores"]
+      }
+    ]
+  },
+  {
+    "crop": "rice",
+    "cards": [
+      {
+        "name": "Rice blast",
+        "symptoms": ["Lesions on leaves", "Panicle infection"],
+        "actions": ["Use clean seed", "Avoid excessive nitrogen"],
+        "treatment_thresholds": ["Treat if lesions spread rapidly before heading"],
+        "local_suppliers": ["District seed suppliers", "Registered agrovet shops"]
+      },
+      {
+        "name": "Stem borer",
+        "symptoms": ["Dead hearts", "White heads"],
+        "actions": ["Field sanitation", "Timely planting"],
+        "treatment_thresholds": ["Treat if 10% of tillers show dead hearts"],
+        "local_suppliers": ["Local agrovet shops", "Cooperative stores"]
+      }
+    ]
+  },
+  {
+    "crop": "sweet potato",
+    "cards": [
+      {
+        "name": "Sweet potato weevil",
+        "symptoms": ["Holes in roots", "Tunnels"],
+        "actions": ["Harvest on time", "Use clean vines"],
+        "treatment_thresholds": ["Harvest early if weevil damage increases"],
+        "local_suppliers": ["Local agrovet shops", "District input dealers"]
+      },
+      {
+        "name": "Virus diseases",
+        "symptoms": ["Leaf distortion", "Stunting"],
+        "actions": ["Use clean vines", "Rogue infected plants"],
+        "treatment_thresholds": ["Remove infected plants immediately to reduce spread"],
+        "local_suppliers": ["Registered vine multipliers", "District extension offices"]
+      }
+    ]
+  }
+]
