@@ -47,10 +47,14 @@ if [ ! -x "$VENV_DIR/bin/python" ]; then
   python3 -m venv "$VENV_DIR"
 fi
 
+if [ ! -x "$VENV_DIR/bin/python" ]; then
+  echo "Virtualenv creation failed: $VENV_DIR/bin/python not found" >&2
+  exit 1
+fi
+
 echo "==> Installing backend dependencies"
-source "$VENV_DIR/bin/activate"
-python -m pip install --upgrade pip
-pip install -r "$APP_DIR/requirements.txt"
+"$VENV_DIR/bin/python" -m pip install --upgrade pip
+"$VENV_DIR/bin/pip" install -r "$APP_DIR/requirements.txt"
 
 echo "==> Installing frontend dependencies"
 cd "$APP_DIR/web"
