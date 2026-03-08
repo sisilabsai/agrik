@@ -92,6 +92,14 @@ subprocess.run(
 )
 PY
 
+echo "==> Installing/updating systemd services"
+cp "$APP_DIR/deploy/hostinger/systemd/agrik-api.service" /etc/systemd/system/agrik-api.service
+cp "$APP_DIR/deploy/hostinger/systemd/agrik-retry-worker.service" /etc/systemd/system/agrik-retry-worker.service
+cp "$APP_DIR/deploy/hostinger/systemd/agrik-weather-alert-worker.service" /etc/systemd/system/agrik-weather-alert-worker.service
+cp "$APP_DIR/deploy/hostinger/systemd/agrik-price-alert-worker.service" /etc/systemd/system/agrik-price-alert-worker.service
+systemctl daemon-reload
+systemctl enable agrik-api agrik-retry-worker agrik-weather-alert-worker agrik-price-alert-worker
+
 echo "==> Restarting services"
 systemctl restart agrik-api
 systemctl restart agrik-retry-worker
