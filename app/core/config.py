@@ -241,6 +241,8 @@ def get_ai_provider_config() -> dict:
         "provider": os.getenv("AI_PROVIDER", "none").strip().lower(),
         "hf_token": os.getenv("HUGGINGFACE_API_TOKEN", "").strip(),
         "hf_model": os.getenv("HF_MODEL", "").strip(),
+        "hf_fallback_model": os.getenv("HF_FALLBACK_MODEL", "").strip(),
+        "hf_alt_models": [token.strip() for token in os.getenv("HF_ALT_MODELS", "").split(",") if token.strip()],
         "tts_backend": os.getenv("TTS_BACKEND", "huggingface").strip().lower(),
         "hf_audio_inference_base_url": os.getenv(
             "HF_AUDIO_INFERENCE_BASE_URL",

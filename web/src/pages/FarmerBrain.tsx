@@ -107,7 +107,8 @@ const REALTIME_MAX_CAPTURE_MS = 12000;
 const REALTIME_VAD_INTERVAL_MS = 180;
 const REALTIME_SPEECH_THRESHOLD = 0.02;
 const REALTIME_USER_MESSAGE_PREFIX = "[Realtime voice]";
-const ENABLE_BROWSER_TTS_FALLBACK = true;
+const ENABLE_BROWSER_TTS_FALLBACK = false;
+const ENABLE_BROWSER_STT_PREVIEW = false;
 const VOICE_PROFILE_STORAGE_KEY_PREFIX = "agrik_grik_voice_profile";
 
 type VoiceProfile = "auto" | "uganda" | "east_africa" | "neutral";
@@ -988,6 +989,7 @@ export default function FarmerBrain() {
   };
 
   const startRealtimeSpeechRecognition = () => {
+    if (!ENABLE_BROWSER_STT_PREVIEW) return;
     if (typeof window === "undefined") return;
     const ctor = (
       (window as typeof window & { SpeechRecognition?: BrowserSpeechRecognitionCtor }).SpeechRecognition ||

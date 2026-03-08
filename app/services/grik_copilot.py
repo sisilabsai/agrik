@@ -199,7 +199,7 @@ def _call_hf_chat(
 
 def _call_huggingface(messages: List[Dict[str, str]]) -> str:
     cfg = get_ai_provider_config()
-    models = [cfg.get("hf_model", "")]
+    models = _chat_candidate_models(cfg)
     return _call_hf_chat(
         models=models,
         messages=messages,
@@ -208,18 +208,37 @@ def _call_huggingface(messages: List[Dict[str, str]]) -> str:
     )
 
 
+def _chat_candidate_models(cfg: Dict[str, Any]) -> List[str]:
+    candidates = [
+        str(cfg.get("hf_model") or "").strip(),
+        str(cfg.get("hf_fallback_model") or "").strip(),
+        *[str(item).strip() for item in (cfg.get("hf_alt_models") or []) if str(item).strip()],
+    ]
+    ordered: List[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        key = candidate.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(candidate)
+    return ordered
+
+
 def _require_huggingface(messages: List[Dict[str, str]], purpose: str) -> str:
     cfg = get_ai_provider_config()
     if cfg.get("provider") != "huggingface":
         raise AIUnavailableError("GRIK AI provider is not set to huggingface.")
     if not cfg.get("hf_token"):
         raise AIUnavailableError("HUGGINGFACE_API_TOKEN is missing. GRIK fallback replies are disabled.")
-    if not str(cfg.get("hf_model") or "").strip():
-        raise AIUnavailableError("HF_MODEL is missing. GRIK fallback replies are disabled.")
+    if not _chat_candidate_models(cfg):
+        raise AIUnavailableError("HF_MODEL is missing and no fallback advisory model is configured.")
 
     generated = _call_huggingface(messages)
     if not generated.strip():
-        raise AIUnavailableError(f"Hugging Face did not return a usable response for {purpose}.")
+        raise AIUnavailableError(f"Hugging Face did not return a usable response for {purpose} across configured models.")
     return generated
 
 

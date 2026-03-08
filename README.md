@@ -66,6 +66,9 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
   - `AI_PROVIDER=huggingface`
   - `HUGGINGFACE_API_TOKEN=<token>`
   - `HF_MODEL=openai/gpt-oss-120b`
+  - Optional advisory model failover:
+    - `HF_FALLBACK_MODEL=<secondary-model>`
+    - `HF_ALT_MODELS=modelA,modelB`
   - Audio (STT/TTS):
     - `TTS_BACKEND=edge-tts` (recommended fast path on Python 3.12+)
     - Optional: `TTS_BACKEND=elevenlabs` (hosted TTS; no local model downloads)
