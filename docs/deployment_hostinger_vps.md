@@ -210,6 +210,7 @@ Important:
 
 - keep the real database password only in `/var/www/agrik.co/shared/.env`
 - do not commit the real password into GitHub
+- for the simplest setup, use a database password without URL-reserved characters such as `@`
 
 ## 7. Database plan
 

@@ -21,7 +21,9 @@ fileConfig(config.config_file_name)
 
 # set sqlalchemy.url from env DATABASE_URL
 if os.getenv("DATABASE_URL"):
-    config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+    # Alembic uses ConfigParser internally, so raw '%' characters in a database
+    # URL must be escaped before assigning the option.
+    config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL").replace("%", "%%"))
 
 # add your model's MetaData object for 'autogenerate' support
 # from myapp import mymodel
