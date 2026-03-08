@@ -4,6 +4,9 @@ import io
 import logging
 import os
 import re
+import shutil
+import subprocess
+import tempfile
 import threading
 import time
 from dataclasses import dataclass
@@ -836,7 +839,7 @@ def _edge_tts_error_detail(exc: Exception) -> str:
     if status == 403:
         return (
             "edge-tts request was rejected by the upstream speech service (HTTP 403). "
-            "Try again later or switch TTS_BACKEND to elevenlabs/huggingface/coqui."
+            "Try again later or switch TTS_BACKEND to piper/elevenlabs/huggingface/coqui."
         )
     if status == 429:
         return "edge-tts rate limit hit (HTTP 429). Try again in a moment."
@@ -846,6 +849,118 @@ def _edge_tts_error_detail(exc: Exception) -> str:
     if message:
         return f"edge-tts request failed: {message}"
     return "edge-tts request failed."
+
+
+def _piper_config_path_for_model(model_path: Path, configured: str) -> Path:
+    raw = str(configured or "").strip()
+    if raw:
+        return Path(raw)
+    return Path(f"{model_path}.json")
+
+
+def _resolve_piper_assets(
+    *,
+    locale_hint: str | None,
+    voice_hint: str | None,
+    cfg: Dict[str, Any],
+) -> tuple[str, Path, Path, str]:
+    binary = str(cfg.get("piper_binary_path") or "piper").strip() or "piper"
+    binary_resolved = shutil.which(binary) or binary
+
+    profile = _effective_voice_profile(voice_hint=voice_hint, locale_hint=locale_hint, cfg=cfg)
+    model_raw = _cfg_value_for_profile(cfg, "piper_model_path", profile) or str(cfg.get("piper_model_path") or "").strip()
+    if not model_raw:
+        raise AudioUnavailableError("PIPER_MODEL_PATH is missing. Piper TTS is disabled.")
+
+    model_path = Path(model_raw)
+    if not model_path.exists():
+        raise AudioUnavailableError(f"Piper model file not found: {model_path}")
+
+    config_raw = _cfg_value_for_profile(cfg, "piper_model_config_path", profile) or str(cfg.get("piper_model_config_path") or "").strip()
+    config_path = _piper_config_path_for_model(model_path, config_raw)
+    if not config_path.exists():
+        raise AudioUnavailableError(f"Piper model config file not found: {config_path}")
+
+    speaker_id = _cfg_value_for_profile(cfg, "piper_speaker_id", profile) or str(cfg.get("piper_speaker_id") or "").strip()
+    return binary_resolved, model_path, config_path, speaker_id
+
+
+async def _synthesize_piper_tts(
+    *,
+    text: str,
+    locale_hint: str | None,
+    voice_hint: str | None,
+    cfg: Dict[str, Any],
+) -> AudioSynthesisResult:
+    binary, model_path, config_path, speaker_id = _resolve_piper_assets(
+        locale_hint=locale_hint,
+        voice_hint=voice_hint,
+        cfg=cfg,
+    )
+
+    timeout = float(cfg.get("hf_audio_timeout", cfg.get("hf_timeout", 60.0)))
+    length_scale = float(cfg.get("piper_length_scale", 1.0))
+    noise_scale = float(cfg.get("piper_noise_scale", 0.667))
+    noise_w = float(cfg.get("piper_noise_w", 0.8))
+
+    fd, output_file = tempfile.mkstemp(prefix="agrik-piper-", suffix=".wav")
+    os.close(fd)
+    try:
+        command = [
+            binary,
+            "--model",
+            str(model_path),
+            "--config",
+            str(config_path),
+            "--output_file",
+            output_file,
+            "--length_scale",
+            str(length_scale),
+            "--noise_scale",
+            str(noise_scale),
+            "--noise_w",
+            str(noise_w),
+        ]
+        if speaker_id:
+            command.extend(["--speaker", str(speaker_id)])
+
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
+        except FileNotFoundError as exc:
+            raise AudioUnavailableError(
+                f"Piper binary was not found: {binary}. Install Piper and set PIPER_BINARY_PATH."
+            ) from exc
+
+        try:
+            _, stderr = await asyncio.wait_for(process.communicate(input=f"{text}\n".encode("utf-8")), timeout=timeout)
+        except asyncio.TimeoutError as exc:
+            process.kill()
+            await process.communicate()
+            raise AudioUnavailableError("Piper TTS timed out.") from exc
+
+        if process.returncode != 0:
+            detail = _trim(stderr.decode("utf-8", errors="ignore"), 300) or "Unknown Piper error."
+            raise AudioUnavailableError(f"Piper TTS failed: {detail}")
+
+        audio_bytes = Path(output_file).read_bytes() if Path(output_file).exists() else b""
+        if not audio_bytes:
+            raise AudioUnavailableError("Piper TTS returned no audio bytes.")
+
+        return AudioSynthesisResult(
+            audio_bytes=audio_bytes,
+            mime_type="audio/wav",
+            model=f"piper:{model_path.name}",
+        )
+    finally:
+        try:
+            Path(output_file).unlink(missing_ok=True)
+        except Exception:
+            logger.warning("Failed to clean up Piper temp output file: %s", output_file)
 
 
 async def _synthesize_edge_tts(
@@ -1141,6 +1256,8 @@ async def synthesize_speech(
 
     if backend in {"elevenlabs", "eleven-labs", "eleven_labs"}:
         max_chars = max(80, int(cfg.get("elevenlabs_tts_max_chars", 2000)))
+    elif backend == "piper":
+        max_chars = max(80, int(cfg.get("piper_tts_max_chars", 800)))
     else:
         max_chars = max(80, int(cfg.get("hf_tts_max_chars", 800)))
     speech_text = _speech_friendly_text(cleaned)
@@ -1157,6 +1274,13 @@ async def synthesize_speech(
         )
     if backend in {"elevenlabs", "eleven-labs", "eleven_labs"}:
         return await _synthesize_elevenlabs(
+            text=prepared_text,
+            locale_hint=locale_hint,
+            voice_hint=voice_hint,
+            cfg=cfg,
+        )
+    if backend == "piper":
+        return await _synthesize_piper_tts(
             text=prepared_text,
             locale_hint=locale_hint,
             voice_hint=voice_hint,

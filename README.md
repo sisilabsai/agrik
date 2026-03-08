@@ -69,6 +69,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
   - Audio (STT/TTS):
     - `TTS_BACKEND=edge-tts` (recommended fast path on Python 3.12+)
     - Optional: `TTS_BACKEND=elevenlabs` (hosted TTS; no local model downloads)
+    - Optional: `TTS_BACKEND=piper` (fully local TTS with Piper binary + ONNX voice)
     - Optional: `TTS_BACKEND=coqui` (local afro-tts, Python 3.11 required)
     - Optional: `TTS_BACKEND=huggingface` (if your selected HF TTS model is router-available)
     - `HF_AUDIO_INFERENCE_BASE_URL=https://router.huggingface.co/hf-inference/models`
@@ -119,6 +120,28 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
       - `COQUI_TTS_GPT_COND_LEN=3`
       - Ensure afro-tts checkpoint files are downloaded under `runtime/models/intronhealth/afro-tts/`.
       - Helper script: `python app/scripts/setup_afro_tts.py`
+    - Piper local TTS settings:
+      - `PIPER_BINARY_PATH=piper`
+      - `PIPER_MODEL_PATH=/var/www/agrik.co/runtime/models/piper/<voice>.onnx`
+      - Optional profile model overrides:
+        - `PIPER_MODEL_PATH_UGANDA=`
+        - `PIPER_MODEL_PATH_EAST_AFRICA=`
+        - `PIPER_MODEL_PATH_NEUTRAL=`
+      - Optional config overrides:
+        - `PIPER_MODEL_CONFIG_PATH=`
+        - `PIPER_MODEL_CONFIG_PATH_UGANDA=`
+        - `PIPER_MODEL_CONFIG_PATH_EAST_AFRICA=`
+        - `PIPER_MODEL_CONFIG_PATH_NEUTRAL=`
+      - Optional speaker IDs:
+        - `PIPER_SPEAKER_ID=`
+        - `PIPER_SPEAKER_ID_UGANDA=`
+        - `PIPER_SPEAKER_ID_EAST_AFRICA=`
+        - `PIPER_SPEAKER_ID_NEUTRAL=`
+      - Optional synthesis tuning:
+        - `PIPER_TTS_MAX_CHARS=800`
+        - `PIPER_LENGTH_SCALE=1.0`
+        - `PIPER_NOISE_SCALE=0.667`
+        - `PIPER_NOISE_W=0.8`
     - Install dependency: `pip install edge-tts` (fast path)
     - Optional local afro-tts dependency: `pip install -r requirements-coqui.txt` (Python 3.9-3.11 only; use a 3.11 venv)
   - `HF_VISION_MODEL=<vision_model_id>` (example: `linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification`)
