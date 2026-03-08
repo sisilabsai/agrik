@@ -9,6 +9,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import UploadFile
@@ -498,7 +499,7 @@ def _build_audio_model_endpoints(cfg: Dict[str, Any], model: str) -> list[str]:
     endpoints: list[str] = []
     seen: set[str] = set()
     for candidate in candidates:
-        base = str(candidate or "").rstrip("/")
+        base = _normalize_audio_inference_base(candidate)
         if not base:
             continue
         if "api-inference.huggingface.co" in base.lower():
@@ -513,6 +514,43 @@ def _build_audio_model_endpoints(cfg: Dict[str, Any], model: str) -> list[str]:
         fallback = f"https://router.huggingface.co/hf-inference/models/{model}"
         endpoints.append(fallback)
     return endpoints
+
+
+def _normalize_audio_inference_base(candidate: str) -> str:
+    raw = str(candidate or "").strip().strip("\"'")
+    if not raw:
+        return ""
+    if "://" not in raw:
+        raw = f"https://{raw.lstrip('/')}"
+    parsed = urlparse(raw)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        logger.warning("Ignoring invalid Hugging Face audio endpoint base=%s", candidate)
+        return ""
+    normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}".rstrip("/")
+    return normalized
+
+
+def _is_name_resolution_error(exc: Exception) -> bool:
+    message = str(exc or "").lower()
+    return any(
+        fragment in message
+        for fragment in (
+            "name or service not known",
+            "temporary failure in name resolution",
+            "failed to resolve",
+            "nodename nor servname provided",
+        )
+    )
+
+
+def _format_audio_request_error(*, mode: str, endpoint: str, exc: Exception) -> str:
+    if _is_name_resolution_error(exc):
+        host = urlparse(endpoint).netloc or endpoint
+        return (
+            f"Hugging Face {mode.upper()} could not resolve '{host}'. "
+            "Check HF_AUDIO_INFERENCE_BASE_URL or the server DNS configuration."
+        )
+    return f"Hugging Face {mode.upper()} request failed: {exc}"
 
 
 def _dedupe_keep_order(items: list[str]) -> list[str]:
@@ -984,7 +1022,7 @@ async def _transcribe_validated_audio(
                         response = await client.post(endpoint, headers=headers, content=validated.content)
                     except httpx.HTTPError as exc:
                         only_missing_path = False
-                        last_error = f"Hugging Face STT request failed: {exc}"
+                        last_error = _format_audio_request_error(mode="stt", endpoint=endpoint, exc=exc)
                         if attempt < attempts_per_endpoint:
                             await asyncio.sleep(1.1 * attempt)
                         continue
@@ -1174,7 +1212,7 @@ async def synthesize_speech(
                     try:
                         response = await client.post(endpoint, headers=headers, json=payload)
                     except httpx.HTTPError as exc:
-                        last_error = f"Hugging Face TTS request failed: {exc}"
+                        last_error = _format_audio_request_error(mode="tts", endpoint=endpoint, exc=exc)
                         if attempt < attempts:
                             await asyncio.sleep(1.1 * attempt)
                         continue
