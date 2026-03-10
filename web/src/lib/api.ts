@@ -726,7 +726,7 @@ export const api = {
       getToken()
     );
   },
-  chatSynthesizeAudio: (payload: { text: string; locale_hint?: string; voice_hint?: string }) =>
+  chatSynthesizeAudio: (payload: { text: string; locale_hint?: string; voice_hint?: string; speech_mode?: "full" | "summary" }) =>
     requestBinaryWithToken(
       "/chat/synthesize-audio",
       {

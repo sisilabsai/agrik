@@ -134,6 +134,112 @@ def _speech_friendly_text(text: str) -> str:
     return spoken
 
 
+def _extract_markdown_section(text: str, heading: str) -> str:
+    if not text.strip():
+        return ""
+    pattern = re.compile(
+        rf"^\s*###\s+{re.escape(heading)}\s*$\n?(.*?)(?=^\s*###\s+|\Z)",
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(text)
+    return match.group(1).strip() if match else ""
+
+
+def _plain_text_lines(text: str) -> list[str]:
+    cleaned = str(text or "")
+    cleaned = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", cleaned)
+    lines: list[str] = []
+    for raw in cleaned.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("|"):
+            continue
+        line = re.sub(r"^\s*[-*+]\s+", "", line)
+        line = re.sub(r"^\s*\d+\.\s+", "", line)
+        line = re.sub(r"^#{1,6}\s*", "", line)
+        line = re.sub(r"\s+", " ", line).strip()
+        if line:
+            lines.append(line)
+    return lines
+
+
+def _first_sentence(text: str, max_chars: int = 220) -> str:
+    cleaned = re.sub(r"\s+", " ", str(text or "")).strip()
+    if not cleaned:
+        return ""
+    parts = re.split(r"(?<=[.!?])\s+", cleaned)
+    sentence = parts[0].strip()
+    if len(sentence) <= max_chars:
+        return sentence
+    return _truncate_tts_text(sentence, max_chars)
+
+
+def _table_action_sentences(section: str, limit: int = 2) -> list[str]:
+    sentences: list[str] = []
+    ordinal_labels = ["First", "Then", "Next"]
+    for raw in section.splitlines():
+        line = raw.strip()
+        if not line.startswith("|"):
+            continue
+        if re.search(r"\baction\b", line, flags=re.IGNORECASE):
+            continue
+        if re.fullmatch(r"\|\s*:?-{2,}:?\s*\|\s*:?-{2,}:?\s*\|\s*:?-{2,}:?\s*\|?", line):
+            continue
+        columns = [part.strip() for part in line.strip("|").split("|")]
+        if len(columns) < 2:
+            continue
+        action = re.sub(r"\s+", " ", columns[0]).strip(" .")
+        how = re.sub(r"\s+", " ", columns[1]).strip(" .")
+        if not action or not how:
+            continue
+        prefix = ordinal_labels[min(len(sentences), len(ordinal_labels) - 1)]
+        sentences.append(f"{prefix}, {action.lower()}: {how}.")
+        if len(sentences) >= limit:
+            break
+    return sentences
+
+
+def summarize_text_for_voice(text: str, max_chars: int = 520) -> str:
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+
+    diagnosis_section = _extract_markdown_section(raw, "Quick diagnosis")
+    actions_section = _extract_markdown_section(raw, "Immediate actions (today)")
+    monitoring_section = _extract_markdown_section(raw, "Monitoring checklist")
+
+    summary_parts: list[str] = []
+
+    diagnosis_lines = _plain_text_lines(diagnosis_section)
+    diagnosis_text = _first_sentence(" ".join(diagnosis_lines) or diagnosis_section, max_chars=220)
+    if diagnosis_text:
+        summary_parts.append(diagnosis_text)
+
+    action_sentences = _table_action_sentences(actions_section, limit=2)
+    if not action_sentences:
+        action_lines = _plain_text_lines(actions_section)[:2]
+        action_sentences = [f"Action: {line}." for line in action_lines if line]
+    summary_parts.extend(action_sentences[:2])
+
+    monitoring_lines = _plain_text_lines(monitoring_section)
+    if monitoring_lines:
+        monitoring_phrase = monitoring_lines[0].rstrip(".")
+        if monitoring_phrase:
+            monitoring_phrase = monitoring_phrase[:1].lower() + monitoring_phrase[1:]
+            summary_parts.append(f"Monitor for {monitoring_phrase}.")
+
+    if not summary_parts:
+        fallback = _first_sentence(_speech_friendly_text(raw), max_chars=max_chars)
+        return fallback
+
+    summary = " ".join(part.strip() for part in summary_parts if part.strip())
+    summary = re.sub(r"\s+", " ", summary).strip()
+    if len(summary) <= max_chars:
+        return summary
+    return _truncate_tts_text(summary, max_chars)
+
+
 def _truncate_tts_text(text: str, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
@@ -1267,6 +1373,23 @@ async def _transcribe_local_openai_whisper_async(
     )
 
 
+def prewarm_audio_runtime(cfg: Dict[str, Any] | None = None) -> str:
+    active_cfg = cfg or get_ai_provider_config()
+    backend = _normalize_stt_backend_name(active_cfg.get("stt_backend"))
+    if backend == "openai-whisper":
+        _ensure_openai_whisper_model(active_cfg)
+        return f"openai-whisper:{_openai_whisper_model_label(active_cfg)}"
+    if backend == "faster-whisper":
+        _ensure_faster_whisper_model(active_cfg)
+        model_label = (
+            str(active_cfg.get("faster_whisper_model_path") or "").strip()
+            or str(active_cfg.get("faster_whisper_model_size") or "small").strip()
+            or "small"
+        )
+        return f"faster-whisper:{model_label}"
+    return backend or "none"
+
+
 def _ensure_faster_whisper_model(cfg: Dict[str, Any]) -> Any:
     global _FASTER_WHISPER_MODEL, _FASTER_WHISPER_MODEL_TAG
 
@@ -1591,12 +1714,15 @@ async def synthesize_speech(
     text: str,
     locale_hint: str | None = None,
     voice_hint: str | None = None,
+    speech_mode: str | None = None,
 ) -> AudioSynthesisResult:
     cfg = get_ai_provider_config()
     backend = str(cfg.get("tts_backend") or "edge-tts").strip().lower()
     cleaned = str(text or "").strip()
     if not cleaned:
         raise AudioValidationError("Text is required for speech synthesis.")
+    normalized_speech_mode = str(speech_mode or "full").strip().lower()
+    source_text = summarize_text_for_voice(cleaned) if normalized_speech_mode == "summary" else cleaned
 
     if backend in {"elevenlabs", "eleven-labs", "eleven_labs"}:
         max_chars = max(80, int(cfg.get("elevenlabs_tts_max_chars", 2000)))
@@ -1604,7 +1730,7 @@ async def synthesize_speech(
         max_chars = max(80, int(cfg.get("piper_tts_max_chars", 800)))
     else:
         max_chars = max(80, int(cfg.get("hf_tts_max_chars", 800)))
-    speech_text = _speech_friendly_text(cleaned)
+    speech_text = _speech_friendly_text(source_text)
     if not speech_text:
         raise AudioValidationError("Text is required for speech synthesis.")
     prepared_text = _truncate_tts_text(speech_text, max_chars)

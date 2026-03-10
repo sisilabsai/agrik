@@ -505,7 +505,7 @@ export default function FarmerBrain() {
   const recordingAutoSendRef = useRef(false);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const activePlaybackUrlRef = useRef<string | null>(null);
-  const audioCacheRef = useRef<Map<number, string>>(new Map());
+  const audioCacheRef = useRef<Map<string, string>>(new Map());
   const lastAssistantIdRef = useRef<number | null>(null);
   const realtimeSocketRef = useRef<WebSocket | null>(null);
   const realtimeMediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -1982,22 +1982,24 @@ export default function FarmerBrain() {
   };
 
   const getSpeechAudioUrl = async (msg: ChatMessage): Promise<string> => {
-    const cached = audioCacheRef.current.get(msg.id);
+    const cacheKey = `${msg.id}:summary`;
+    const cached = audioCacheRef.current.get(cacheKey);
     if (cached) return cached;
 
     const result = await api.chatSynthesizeAudio({
       text: msg.message,
       locale_hint: msg.language || localeHint,
       voice_hint: resolveVoiceHint(ttsVoiceProfile),
+      speech_mode: "summary",
     });
     const blob =
       result.blob.type && result.blob.type !== "application/octet-stream"
         ? result.blob
         : new Blob([result.blob], { type: result.contentType || "audio/wav" });
     const objectUrl = URL.createObjectURL(blob);
-    audioCacheRef.current.set(msg.id, objectUrl);
+    audioCacheRef.current.set(cacheKey, objectUrl);
     if (audioCacheRef.current.size > 40) {
-      const oldestKey = audioCacheRef.current.keys().next().value as number | undefined;
+      const oldestKey = audioCacheRef.current.keys().next().value as string | undefined;
       if (oldestKey != null) {
         const oldestUrl = audioCacheRef.current.get(oldestKey);
         if (oldestUrl) {

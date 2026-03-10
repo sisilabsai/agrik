@@ -260,6 +260,7 @@ def get_ai_provider_config() -> dict:
         ).strip(),
         "hf_audio_timeout": _to_float(os.getenv("HF_AUDIO_TIMEOUT", "60"), 60.0),
         "hf_audio_max_file_mb": _to_int(os.getenv("HF_AUDIO_MAX_FILE_MB", "12"), 12),
+        "audio_prewarm_enabled": _to_bool(os.getenv("AUDIO_PREWARM_ENABLED", "false"), False),
         "stt_backend": os.getenv("STT_BACKEND", "openai-whisper").strip().lower(),
         "hf_stt_model": os.getenv("HF_STT_MODEL", "openai/whisper-large-v3-turbo").strip(),
         "hf_stt_alt_models": [

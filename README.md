@@ -83,6 +83,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
     - Note: `api-inference.huggingface.co` may return `410 Gone`; prefer the router base URL above.
     - `HF_AUDIO_TIMEOUT=60`
     - `HF_AUDIO_MAX_FILE_MB=12`
+    - Optional startup warm-up: `AUDIO_PREWARM_ENABLED=true` to preload the selected local STT backend on API boot
     - OpenAI Whisper local STT:
       - `OPENAI_WHISPER_MODEL=small`
       - Optional model path: `OPENAI_WHISPER_MODEL_PATH=`

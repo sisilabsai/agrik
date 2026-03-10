@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from app.core.logging import configure_logging
-from app.core.config import get_cors_origins, get_media_storage_config
+from app.core.config import get_ai_provider_config, get_cors_origins, get_media_storage_config
 from app.core.metrics import REQUEST_COUNT, REQUEST_LATENCY, QUEUE_BACKLOG
 from app.db.session import SessionLocal
 from app.db.models import OutboundMessage
@@ -67,6 +67,16 @@ def startup() -> None:
         logger.exception("Admin seeding failed during startup: %s", exc)
     finally:
         db.close()
+
+    audio_cfg = get_ai_provider_config()
+    if bool(audio_cfg.get("audio_prewarm_enabled")):
+        try:
+            from app.services.audio import prewarm_audio_runtime
+
+            warmed = prewarm_audio_runtime(audio_cfg)
+            logger.info("Audio runtime prewarmed backend=%s", warmed)
+        except Exception as exc:
+            logger.warning("Audio runtime prewarm failed: %s", exc)
 
 @app.get("/")
 def root() -> dict:

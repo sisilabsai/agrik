@@ -19,6 +19,7 @@ class ChatAudioSynthesisRequest(BaseModel):
     text: str
     locale_hint: str | None = None
     voice_hint: str | None = None
+    speech_mode: str | None = None
 
 
 class ChatMessageOut(BaseModel):

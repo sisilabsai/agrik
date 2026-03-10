@@ -128,8 +128,14 @@ async def _emit_realtime_tts(
     text: str,
     locale_hint: str | None,
     voice_hint: str | None = None,
+    speech_mode: str | None = None,
 ) -> None:
-    tts = await synthesize_speech(text=text, locale_hint=locale_hint, voice_hint=voice_hint)
+    tts = await synthesize_speech(
+        text=text,
+        locale_hint=locale_hint,
+        voice_hint=voice_hint,
+        speech_mode=speech_mode,
+    )
     encoded_audio = base64.b64encode(tts.audio_bytes).decode("ascii")
     chars_per_chunk = 24000
     total_chunks = max(1, (len(encoded_audio) + chars_per_chunk - 1) // chars_per_chunk)
@@ -409,6 +415,7 @@ async def realtime_voice(websocket: WebSocket) -> None:
                         text=reply_text,
                         locale_hint=advice.language,
                         voice_hint=voice_hint,
+                        speech_mode="summary",
                     )
                 except (AudioValidationError, AudioUnavailableError) as exc:
                     await websocket.send_json({"type": "error", "stage": "tts", "detail": str(exc)})
@@ -520,6 +527,7 @@ async def synthesize_audio(
             text=payload.text,
             locale_hint=payload.locale_hint,
             voice_hint=payload.voice_hint,
+            speech_mode=payload.speech_mode,
         )
     except AudioValidationError as exc:
         logger.warning("GRIK audio synthesis validation failed user_id=%s error=%s", user.id, exc)
@@ -534,6 +542,7 @@ async def synthesize_audio(
         headers={
             "Cache-Control": "no-store",
             "X-GRIK-TTS-Model": result.model,
+            "X-GRIK-TTS-Speech-Mode": (payload.speech_mode or "full").strip().lower() or "full",
         },
     )
 
