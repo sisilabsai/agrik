@@ -217,6 +217,7 @@ def main() -> None:
                         user = register_user(
                             db,
                             phone=phone,
+                            email=email,
                             password=DEFAULT_USER_PASSWORD,
                             role=role,
                             full_name=full_name,
@@ -246,6 +247,7 @@ def main() -> None:
                         focus_crops=profile["focus_crops"],
                     )
                     user.role = role
+                    user.email = email
                     if not user.password_hash:
                         user.password_hash = hash_password(DEFAULT_USER_PASSWORD)
                     upsert_registration_profile(

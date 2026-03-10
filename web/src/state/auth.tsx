@@ -5,19 +5,29 @@ import type { AuthRegisterPayload } from "../lib/api";
 export type AuthUser = {
   id: string;
   phone: string;
+  email: string;
   role: string;
   status?: string;
   verification_status?: string;
   created_at?: string;
 };
 
+type AuthActionResult = {
+  status: string;
+  message?: string;
+  user?: AuthUser | null;
+};
+
 type AuthState = {
   user: AuthUser | null;
   loading: boolean;
   error: string | null;
-  login: (phone: string, password?: string | null) => Promise<"otp_sent" | "logged_in">;
-  verify: (phone: string, code: string) => Promise<void>;
-  register: (payload: AuthRegisterPayload) => Promise<"otp_sent" | "logged_in">;
+  login: (phone: string, password?: string | null) => Promise<AuthActionResult>;
+  verify: (email: string, code: string) => Promise<void>;
+  register: (payload: AuthRegisterPayload) => Promise<AuthActionResult>;
+  resendVerificationCode: (email: string) => Promise<AuthActionResult>;
+  requestPasswordReset: (email: string) => Promise<AuthActionResult>;
+  resetPassword: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -53,9 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.token && result.user) {
       setToken(result.token);
       setUser(result.user);
-      return "logged_in" as const;
+      return { status: "logged_in", user: result.user, message: result.message } satisfies AuthActionResult;
     }
-    return "otp_sent" as const;
+    return { status: result.status, user: result.user ?? null, message: result.message } satisfies AuthActionResult;
   }, []);
 
   const register = useCallback(async (payload: AuthRegisterPayload) => {
@@ -64,14 +74,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.token && result.user) {
       setToken(result.token);
       setUser(result.user);
-      return "logged_in" as const;
+      return { status: "logged_in", user: result.user, message: result.message } satisfies AuthActionResult;
     }
-    return "otp_sent" as const;
+    return { status: result.status, user: result.user ?? null, message: result.message } satisfies AuthActionResult;
   }, []);
 
-  const verify = useCallback(async (phone: string, code: string) => {
+  const verify = useCallback(async (email: string, code: string) => {
     setError(null);
-    const result = await api.authVerify({ phone, code });
+    const result = await api.authVerify({ email, code });
+    setToken(result.token);
+    setUser(result.user);
+  }, []);
+
+  const resendVerificationCode = useCallback(async (email: string) => {
+    setError(null);
+    const result = await api.authResendVerificationCode({ email });
+    return { status: result.status, user: result.user ?? null, message: result.message } satisfies AuthActionResult;
+  }, []);
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    setError(null);
+    const result = await api.authRequestPasswordReset({ email });
+    return { status: result.status, message: result.message } satisfies AuthActionResult;
+  }, []);
+
+  const resetPassword = useCallback(async (email: string, code: string, password: string) => {
+    setError(null);
+    const result = await api.authResetPassword({ email, code, password });
     setToken(result.token);
     setUser(result.user);
   }, []);
@@ -82,8 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, error, login, verify, register, logout }),
-    [user, loading, error, login, verify, register, logout]
+    () => ({ user, loading, error, login, verify, register, resendVerificationCode, requestPasswordReset, resetPassword, logout }),
+    [user, loading, error, login, verify, register, resendVerificationCode, requestPasswordReset, resetPassword, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

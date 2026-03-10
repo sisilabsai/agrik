@@ -18,6 +18,13 @@ type PhoneCheckState =
   | { state: "taken"; normalized: string }
   | { state: "invalid"; message: string };
 
+type EmailCheckState =
+  | { state: "idle" }
+  | { state: "checking" }
+  | { state: "available"; normalized: string }
+  | { state: "taken"; normalized: string }
+  | { state: "invalid"; message: string };
+
 type AuthMode = "login" | "register";
 
 const FALLBACK_ROLE_OPTIONS: OnboardingRoleOptionOut[] = [
@@ -70,7 +77,7 @@ function normalizeSelection(value: string) {
 }
 
 export default function AuthPage() {
-  const { login, register, verify } = useAuth();
+  const { login, register, verify, resendVerificationCode, requestPasswordReset, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>("login");
 
   const [loginPhone, setLoginPhone] = useState("");
@@ -78,6 +85,7 @@ export default function AuthPage() {
 
   const [fullName, setFullName] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [role, setRole] = useState("farmer");
   const [district, setDistrict] = useState("");
@@ -88,12 +96,18 @@ export default function AuthPage() {
   const [focusCrops, setFocusCrops] = useState<string[]>([]);
 
   const [otpRequired, setOtpRequired] = useState(false);
-  const [otpPhone, setOtpPhone] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpContext, setOtpContext] = useState<"login" | "register" | null>(null);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordCode, setForgotPasswordCode] = useState("");
+  const [forgotPasswordNewPassword, setForgotPasswordNewPassword] = useState("");
+  const [forgotPasswordCodeSent, setForgotPasswordCodeSent] = useState(false);
 
   const [status, setStatus] = useState<StatusMessage | null>(null);
   const [phoneCheck, setPhoneCheck] = useState<PhoneCheckState>({ state: "idle" });
+  const [emailCheck, setEmailCheck] = useState<EmailCheckState>({ state: "idle" });
 
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [loadingParishes, setLoadingParishes] = useState(false);
@@ -209,6 +223,14 @@ export default function AuthPage() {
     return "";
   }, [phoneCheck]);
 
+  const emailStatusLabel = useMemo(() => {
+    if (emailCheck.state === "checking") return "Checking email...";
+    if (emailCheck.state === "available") return `Available (${emailCheck.normalized})`;
+    if (emailCheck.state === "taken") return `Already registered (${emailCheck.normalized})`;
+    if (emailCheck.state === "invalid") return emailCheck.message;
+    return "";
+  }, [emailCheck]);
+
   function ensureLoginPhone() {
     if (!loginPhone.trim()) {
       setStatus({ type: "error", message: "Enter your phone number." });
@@ -225,8 +247,17 @@ export default function AuthPage() {
     return true;
   }
 
+  function ensureRegisterEmail() {
+    if (!registerEmail.trim()) {
+      setStatus({ type: "error", message: "Enter your email address." });
+      return false;
+    }
+    return true;
+  }
+
   function validateRegistration() {
     if (!ensureRegisterPhone()) return false;
+    if (!ensureRegisterEmail()) return false;
     if (!fullName.trim()) {
       setStatus({ type: "error", message: "Enter your full name." });
       return false;
@@ -277,21 +308,45 @@ export default function AuthPage() {
     }
   };
 
+  const checkEmail = async () => {
+    if (!ensureRegisterEmail()) return null;
+    setEmailCheck({ state: "checking" });
+    try {
+      const response = await api.authEmailAvailability(registerEmail.trim());
+      setEmailCheck(
+        response.available
+          ? { state: "available", normalized: response.normalized_email }
+          : { state: "taken", normalized: response.normalized_email }
+      );
+      return response;
+    } catch (err) {
+      const message = parseError(err);
+      setEmailCheck({ state: "invalid", message });
+      setStatus({ type: "error", message });
+      return null;
+    }
+  };
+
   const handleRegister = async () => {
     if (!validateRegistration()) return;
-    setStatus({ type: "info", message: "Checking phone number..." });
-    const availability = await checkPhone();
-    if (!availability) return;
-    if (!availability.available) {
+    setStatus({ type: "info", message: "Checking registration details..." });
+    const [phoneAvailability, emailAvailability] = await Promise.all([checkPhone(), checkEmail()]);
+    if (!phoneAvailability || !emailAvailability) return;
+    if (!phoneAvailability.available) {
       setStatus({ type: "error", message: "This phone is already registered. Use Sign in instead." });
       setMode("login");
       setLoginPhone(registerPhone.trim());
+      return;
+    }
+    if (!emailAvailability.available) {
+      setStatus({ type: "error", message: "This email is already registered. Use Sign in or reset your password." });
       return;
     }
     setStatus({ type: "info", message: "Creating account..." });
     try {
       const result = await register({
         phone: registerPhone.trim(),
+        email: registerEmail.trim(),
         password: registerPassword,
         role,
         full_name: fullName.trim(),
@@ -302,7 +357,7 @@ export default function AuthPage() {
         service_categories: needsServiceCategories ? serviceCategories : undefined,
         focus_crops: needsFocusCrops ? focusCrops : undefined,
       });
-      if (result === "logged_in") {
+      if (result.status === "logged_in") {
         setOtpRequired(false);
         setOtpContext(null);
         setStatus({ type: "info", message: "Account created." });
@@ -310,8 +365,8 @@ export default function AuthPage() {
       }
       setOtpRequired(true);
       setOtpContext("register");
-      setOtpPhone(registerPhone.trim());
-      setStatus({ type: "info", message: "Enter the OTP sent to your phone." });
+      setVerificationEmail(registerEmail.trim());
+      setStatus({ type: "info", message: result.message || "Enter the email verification code we sent." });
     } catch (err) {
       setStatus({ type: "error", message: parseError(err) });
     }
@@ -322,7 +377,7 @@ export default function AuthPage() {
     setStatus({ type: "info", message: "Signing in..." });
     try {
       const result = await login(loginPhone.trim(), loginPassword.trim() || undefined);
-      if (result === "logged_in") {
+      if (result.status === "logged_in") {
         setOtpRequired(false);
         setOtpContext(null);
         setStatus({ type: "info", message: "Signed in." });
@@ -330,28 +385,83 @@ export default function AuthPage() {
       }
       setOtpRequired(true);
       setOtpContext("login");
-      setOtpPhone(loginPhone.trim());
-      setStatus({ type: "info", message: "Enter the OTP sent to your phone." });
+      setVerificationEmail(result.user?.email || "");
+      setStatus({ type: "info", message: result.message || "Verify your email before signing in." });
     } catch (err) {
       setStatus({ type: "error", message: parseError(err) });
     }
   };
 
   const handleVerify = async () => {
-    if (!otpPhone.trim()) {
-      setStatus({ type: "error", message: "Missing phone number for OTP verification." });
+    if (!verificationEmail.trim()) {
+      setStatus({ type: "error", message: "Missing email address for verification." });
       return;
     }
     if (!otpCode.trim()) {
-      setStatus({ type: "error", message: "Enter the OTP code you received." });
+      setStatus({ type: "error", message: "Enter the 6-digit code you received." });
       return;
     }
-    setStatus({ type: "info", message: "Verifying OTP..." });
+    setStatus({ type: "info", message: "Verifying email..." });
     try {
-      await verify(otpPhone.trim(), otpCode.trim());
+      await verify(verificationEmail.trim(), otpCode.trim());
       setOtpRequired(false);
       setOtpContext(null);
-      setStatus({ type: "info", message: "Verification complete." });
+      setStatus({ type: "info", message: "Email verified. You are now signed in." });
+    } catch (err) {
+      setStatus({ type: "error", message: parseError(err) });
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!verificationEmail.trim()) {
+      setStatus({ type: "error", message: "Missing email address for verification." });
+      return;
+    }
+    setStatus({ type: "info", message: "Sending a new verification code..." });
+    try {
+      const result = await resendVerificationCode(verificationEmail.trim());
+      setStatus({ type: "info", message: result.message || "A new verification code has been sent." });
+    } catch (err) {
+      setStatus({ type: "error", message: parseError(err) });
+    }
+  };
+
+  const handleForgotPasswordRequest = async () => {
+    if (!forgotPasswordEmail.trim()) {
+      setStatus({ type: "error", message: "Enter your email address to reset your password." });
+      return;
+    }
+    setStatus({ type: "info", message: "Sending reset code..." });
+    try {
+      const result = await requestPasswordReset(forgotPasswordEmail.trim());
+      setForgotPasswordCodeSent(true);
+      setStatus({ type: "info", message: result.message || "If the email exists, a reset code has been sent." });
+    } catch (err) {
+      setStatus({ type: "error", message: parseError(err) });
+    }
+  };
+
+  const handleForgotPasswordReset = async () => {
+    if (!forgotPasswordEmail.trim()) {
+      setStatus({ type: "error", message: "Enter your email address." });
+      return;
+    }
+    if (!forgotPasswordCode.trim()) {
+      setStatus({ type: "error", message: "Enter the reset code from your email." });
+      return;
+    }
+    if (forgotPasswordNewPassword.trim().length < 6) {
+      setStatus({ type: "error", message: "Use a new password with at least 6 characters." });
+      return;
+    }
+    setStatus({ type: "info", message: "Resetting password..." });
+    try {
+      await resetPassword(forgotPasswordEmail.trim(), forgotPasswordCode.trim(), forgotPasswordNewPassword);
+      setForgotPasswordOpen(false);
+      setForgotPasswordCodeSent(false);
+      setForgotPasswordCode("");
+      setForgotPasswordNewPassword("");
+      setStatus({ type: "info", message: "Password reset complete. You are now signed in." });
     } catch (err) {
       setStatus({ type: "error", message: parseError(err) });
     }
@@ -374,7 +484,7 @@ export default function AuthPage() {
             <div>
               <div className="label">Sign in</div>
               <h2>Access your AGRIK account</h2>
-              <p>Use your phone number and password.</p>
+              <p>Use your phone number and password. Unverified accounts must confirm email first.</p>
             </div>
           </div>
 
@@ -402,6 +512,9 @@ export default function AuthPage() {
           <div className="auth-actions auth-actions-stacked">
             <button className="btn" onClick={handleLogin}>
               Sign in
+            </button>
+            <button className="btn ghost" onClick={() => setForgotPasswordOpen((current) => !current)}>
+              {forgotPasswordOpen ? "Close password reset" : "Forgot password?"}
             </button>
             <button className="btn ghost" onClick={() => setMode("register")}>
               Create account
@@ -473,6 +586,29 @@ export default function AuthPage() {
             </label>
 
             <label className="field auth-span-2">
+              Email address
+              <div className="auth-inline-input">
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={registerEmail}
+                  onChange={(event) => {
+                    setRegisterEmail(event.target.value);
+                    setEmailCheck({ state: "idle" });
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn ghost auth-inline-btn"
+                  onClick={checkEmail}
+                  disabled={emailCheck.state === "checking"}
+                >
+                  Check
+                </button>
+              </div>
+            </label>
+
+            <label className="field auth-span-2">
               Password
               <input
                 type="password"
@@ -485,6 +621,12 @@ export default function AuthPage() {
             {phoneStatusLabel ? (
               <p className={`auth-phone-status ${phoneCheck.state === "taken" || phoneCheck.state === "invalid" ? "error" : ""}`}>
                 {phoneStatusLabel}
+              </p>
+            ) : null}
+
+            {emailStatusLabel ? (
+              <p className={`auth-phone-status ${emailCheck.state === "taken" || emailCheck.state === "invalid" ? "error" : ""}`}>
+                {emailStatusLabel}
               </p>
             ) : null}
 
@@ -606,20 +748,77 @@ export default function AuthPage() {
           <div className="auth-panel-head">
             <div>
               <div className="label">{otpContext === "login" ? "Sign in verification" : "Account verification"}</div>
-              <h2>Enter OTP</h2>
-              <p>Use the code sent to {otpPhone || "your phone"}.</p>
+              <h2>Verify email</h2>
+              <p>Use the code sent to {verificationEmail || "your email"}.</p>
             </div>
           </div>
           <div className="auth-form-grid auth-form-grid-login">
             <label className="field auth-span-2">
-              OTP code
+              Verification code
               <input placeholder="123456" value={otpCode} onChange={(event) => setOtpCode(event.target.value)} />
             </label>
           </div>
           <div className="auth-actions auth-actions-stacked">
             <button className="btn" onClick={handleVerify}>
-              Verify OTP
+              Verify email
             </button>
+            <button className="btn ghost" onClick={handleResendVerification}>
+              Resend code
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {forgotPasswordOpen ? (
+        <section className="auth-card auth-card-modern auth-otp-card">
+          <div className="auth-panel-head">
+            <div>
+              <div className="label">Password recovery</div>
+              <h2>Reset your password</h2>
+              <p>Use your account email to receive a 6-digit reset code.</p>
+            </div>
+          </div>
+          <div className="auth-form-grid auth-form-grid-login">
+            <label className="field auth-span-2">
+              Email address
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={forgotPasswordEmail}
+                onChange={(event) => setForgotPasswordEmail(event.target.value)}
+              />
+            </label>
+            {forgotPasswordCodeSent ? (
+              <>
+                <label className="field auth-span-2">
+                  Reset code
+                  <input
+                    placeholder="123456"
+                    value={forgotPasswordCode}
+                    onChange={(event) => setForgotPasswordCode(event.target.value)}
+                  />
+                </label>
+                <label className="field auth-span-2">
+                  New password
+                  <input
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={forgotPasswordNewPassword}
+                    onChange={(event) => setForgotPasswordNewPassword(event.target.value)}
+                  />
+                </label>
+              </>
+            ) : null}
+          </div>
+          <div className="auth-actions auth-actions-stacked">
+            <button className="btn" onClick={handleForgotPasswordRequest}>
+              {forgotPasswordCodeSent ? "Send another reset code" : "Send reset code"}
+            </button>
+            {forgotPasswordCodeSent ? (
+              <button className="btn ghost" onClick={handleForgotPasswordReset}>
+                Reset password
+              </button>
+            ) : null}
           </div>
         </section>
       ) : null}

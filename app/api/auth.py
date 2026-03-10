@@ -2,24 +2,29 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
-from app.core.config import get_auth_config
 from app.schemas.auth import (
-    AuthRegisterRequest,
+    AuthEmailAvailabilityOut,
+    AuthEmailCodeRequest,
     AuthLoginRequest,
-    AuthVerifyRequest,
+    AuthPasswordResetConfirmRequest,
+    AuthPhoneAvailabilityOut,
+    AuthRegisterRequest,
+    AuthStatusResponse,
     AuthTokenResponse,
     AuthUserOut,
-    AuthPhoneAvailabilityOut,
+    AuthVerifyRequest,
 )
 from app.services.auth import (
-    register_user,
-    send_login_code,
-    login_user,
-    try_dev_bypass_login,
-    issue_login_token,
-    verify_code,
-    get_user_from_token,
+    check_email_availability,
     check_phone_availability,
+    confirm_password_reset,
+    get_user_from_token,
+    issue_login_token,
+    login_user,
+    register_user,
+    request_password_reset,
+    send_email_verification_code,
+    verify_email_code,
 )
 
 router = APIRouter()
@@ -37,6 +42,7 @@ def _serialize_user(user) -> AuthUserOut:
     return AuthUserOut(
         id=user.id,
         phone=user.phone,
+        email=user.email,
         role=user.role,
         status=user.status,
         verification_status=user.verification_status,
@@ -49,14 +55,13 @@ def _device_id_from_request(request: Request) -> str | None:
     return value or None
 
 
-@router.post("/register")
-def register(payload: AuthRegisterRequest, request: Request, db: Session = Depends(get_db)) -> dict:
-    cfg = get_auth_config()
-    device_id = _device_id_from_request(request)
+@router.post("/register", response_model=AuthStatusResponse)
+def register(payload: AuthRegisterRequest, db: Session = Depends(get_db)) -> AuthStatusResponse:
     try:
         user = register_user(
             db,
             phone=payload.phone,
+            email=payload.email,
             password=payload.password,
             role=payload.role,
             full_name=payload.full_name,
@@ -67,46 +72,92 @@ def register(payload: AuthRegisterRequest, request: Request, db: Session = Depen
             service_categories=payload.service_categories,
             focus_crops=payload.focus_crops,
         )
-        if cfg.get("require_otp"):
-            send_login_code(db, user)
-            return {"status": "otp_sent", "user": _serialize_user(user)}
-
-        result = issue_login_token(db, user, mark_verified=False, device_id=device_id)
-        return {"status": "logged_in", "token": result.token, "user": _serialize_user(result.user)}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+    return AuthStatusResponse(
+        status="verification_sent",
+        message="Check your email for a 6-digit AGRIK verification code.",
+        user=_serialize_user(user),
+    )
 
 
 @router.post("/login")
 def login(payload: AuthLoginRequest, request: Request, db: Session = Depends(get_db)) -> dict:
-    cfg = get_auth_config()
     device_id = payload.device_id or _device_id_from_request(request)
     try:
         user = login_user(db, payload.phone, payload.password)
-
-        if not cfg.get("require_otp"):
-            result = issue_login_token(db, user, mark_verified=False, device_id=device_id)
-            return {
-                "status": "logged_in",
-                "token": result.token,
-                "user": _serialize_user(result.user),
-            }
-
-        bypass = try_dev_bypass_login(db, user, device_id=device_id)
-        if bypass and bypass.token:
-            return {"status": "logged_in", "token": bypass.token, "user": _serialize_user(bypass.user)}
-
-        send_login_code(db, user)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
-    return {"status": "otp_sent", "user": _serialize_user(user)}
+
+    if (user.verification_status or "").lower() != "verified":
+        try:
+            send_email_verification_code(db, user.email)
+        except ValueError:
+            pass
+        return {
+            "status": "verification_required",
+            "message": "Verify your email before signing in.",
+            "user": _serialize_user(user),
+        }
+
+    result = issue_login_token(db, user, mark_verified=False, device_id=device_id)
+    return {
+        "status": "logged_in",
+        "token": result.token,
+        "user": _serialize_user(result.user),
+    }
 
 
-@router.post("/verify-otp", response_model=AuthTokenResponse)
-def verify_otp(payload: AuthVerifyRequest, request: Request, db: Session = Depends(get_db)) -> AuthTokenResponse:
+@router.post("/verify-email", response_model=AuthTokenResponse)
+def verify_email(payload: AuthVerifyRequest, request: Request, db: Session = Depends(get_db)) -> AuthTokenResponse:
     device_id = payload.device_id or _device_id_from_request(request)
     try:
-        result = verify_code(db, payload.phone, payload.code, device_id=device_id)
+        result = verify_email_code(db, payload.email, payload.code, device_id=device_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return AuthTokenResponse(token=result.token or "", user=_serialize_user(result.user))
+
+
+@router.post("/resend-verification-code", response_model=AuthStatusResponse)
+def resend_verification_code(payload: AuthEmailCodeRequest, db: Session = Depends(get_db)) -> AuthStatusResponse:
+    try:
+        user = send_email_verification_code(db, payload.email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return AuthStatusResponse(
+        status="verification_sent",
+        message="A new verification code has been sent to your email.",
+        user=_serialize_user(user),
+    )
+
+
+@router.post("/forgot-password/request", response_model=AuthStatusResponse)
+def forgot_password_request(payload: AuthEmailCodeRequest, db: Session = Depends(get_db)) -> AuthStatusResponse:
+    try:
+        request_password_reset(db, payload.email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return AuthStatusResponse(
+        status="reset_code_sent",
+        message="If the email exists, a password reset code has been sent.",
+    )
+
+
+@router.post("/forgot-password/reset", response_model=AuthTokenResponse)
+def forgot_password_reset(
+    payload: AuthPasswordResetConfirmRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> AuthTokenResponse:
+    device_id = _device_id_from_request(request)
+    try:
+        result = confirm_password_reset(
+            db,
+            email=payload.email,
+            code=payload.code,
+            password=payload.password,
+            device_id=device_id,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return AuthTokenResponse(token=result.token or "", user=_serialize_user(result.user))
@@ -133,5 +184,18 @@ def phone_availability(phone: str, db: Session = Depends(get_db)) -> AuthPhoneAv
     return AuthPhoneAvailabilityOut(
         phone=phone,
         normalized_phone=normalized_phone,
+        available=available,
+    )
+
+
+@router.get("/email-availability", response_model=AuthEmailAvailabilityOut)
+def email_availability(email: str, db: Session = Depends(get_db)) -> AuthEmailAvailabilityOut:
+    try:
+        normalized_email, available = check_email_availability(db, email)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return AuthEmailAvailabilityOut(
+        email=email,
+        normalized_email=normalized_email,
         available=available,
     )

@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_auth_config, get_default_sms_provider
 from app.db.models import AuthUser
+from app.services.email import send_email
 from app.services.auth_tokens import sign_token
 from app.services.onboarding import prepare_onboarding, upsert_registration_profile
 from app.services.outbound_queue import send_and_record
@@ -20,6 +22,7 @@ logger = logging.getLogger("agrik.auth")
 
 ALLOWED_SELF_ROLES = {"farmer", "buyer", "offtaker", "service_provider", "input_supplier"}
 DEVICE_ID_MAX_LENGTH = 128
+EMAIL_PATTERN = re.compile(r"^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$", re.IGNORECASE)
 
 
 @dataclass
@@ -64,6 +67,15 @@ def _hash_code(code: str, secret: str) -> str:
 def _generate_otp(length: int) -> str:
     max_value = 10 ** length
     return str(secrets.randbelow(max_value)).zfill(length)
+
+
+def _normalize_email(email: str) -> str:
+    value = str(email or "").strip().lower()
+    if not value:
+        raise ValueError("email is required")
+    if not EMAIL_PATTERN.match(value):
+        raise ValueError("enter a valid email address")
+    return value
 
 
 def _send_otp(phone: str, code: str) -> None:
@@ -117,9 +129,118 @@ def _find_user_by_phone(db: Session, phone: str) -> tuple[Optional[AuthUser], st
     return None, normalized_phone
 
 
+def _find_user_by_email(db: Session, email: str) -> tuple[Optional[AuthUser], str]:
+    normalized_email = _normalize_email(email)
+    user = db.query(AuthUser).filter(AuthUser.email == normalized_email).first()
+    return user, normalized_email
+
+
+def _email_code_fields(purpose: str) -> tuple[str, str, str, str]:
+    if purpose == "password_reset":
+        return (
+            "password_reset_code_hash",
+            "password_reset_expires_at",
+            "password_reset_attempts",
+            "password_reset_last_sent_at",
+        )
+    return (
+        "email_verification_code_hash",
+        "email_verification_expires_at",
+        "email_verification_attempts",
+        "email_verification_last_sent_at",
+    )
+
+
+def _clear_email_code(user: AuthUser, purpose: str) -> None:
+    hash_attr, expires_attr, attempts_attr, last_sent_attr = _email_code_fields(purpose)
+    setattr(user, hash_attr, None)
+    setattr(user, expires_attr, None)
+    setattr(user, attempts_attr, 0)
+    if purpose == "password_reset":
+        setattr(user, last_sent_attr, None)
+
+
+def _send_email_code(
+    db: Session,
+    user: AuthUser,
+    *,
+    purpose: str,
+    display_name: str | None = None,
+    commit: bool = True,
+) -> None:
+    cfg = get_auth_config()
+    hash_attr, expires_attr, attempts_attr, last_sent_attr = _email_code_fields(purpose)
+    last_sent_at = _as_utc(getattr(user, last_sent_attr))
+    if last_sent_at:
+        cooldown = timedelta(seconds=cfg["otp_resend_cooldown_seconds"])
+        if _now() - last_sent_at < cooldown:
+            raise ValueError("A code was sent recently. Please wait before requesting another one.")
+
+    code = _generate_otp(cfg["otp_length"])
+    ttl_minutes = cfg["otp_ttl_minutes"]
+    recipient_name = str(display_name or "").strip() or "there"
+    if purpose == "password_reset":
+        subject = "Reset your AGRIK password"
+        body = (
+            f"Hello {recipient_name},\n\n"
+            "We received a request to reset your AGRIK password.\n"
+            f"Your 6-digit reset code is: {code}\n\n"
+            f"This code expires in {ttl_minutes} minutes.\n"
+            "If you did not request this reset, you can ignore this email.\n\n"
+            "AGRIK Team"
+        )
+    else:
+        subject = "Welcome to AGRIK - verify your email"
+        body = (
+            f"Hello {recipient_name},\n\n"
+            "Welcome to AGRIK.\n"
+            "Use the verification code below to activate your web account and confirm this email address.\n"
+            f"Your 6-digit verification code is: {code}\n\n"
+            f"This code expires in {ttl_minutes} minutes.\n"
+            "If you did not create this account, please ignore this email.\n\n"
+            "AGRIK Team"
+        )
+
+    if not send_email(user.email, subject, body):
+        raise ValueError("Email delivery failed. Please check SMTP settings and try again.")
+
+    now = _now()
+    setattr(user, hash_attr, _hash_code(code, cfg["secret"]))
+    setattr(user, expires_attr, now + timedelta(minutes=ttl_minutes))
+    setattr(user, attempts_attr, 0)
+    setattr(user, last_sent_attr, now)
+    if commit:
+        db.commit()
+        db.refresh(user)
+
+
+def _verify_email_code_or_raise(db: Session, user: AuthUser, code: str, *, purpose: str) -> None:
+    cfg = get_auth_config()
+    hash_attr, expires_attr, attempts_attr, _ = _email_code_fields(purpose)
+    stored_hash = getattr(user, hash_attr)
+    expires_at = _as_utc(getattr(user, expires_attr))
+    attempts = int(getattr(user, attempts_attr) or 0)
+
+    if not stored_hash or not expires_at:
+        raise ValueError("No verification code is pending for this account.")
+    if _now() > expires_at:
+        raise ValueError("The verification code has expired.")
+    if attempts >= cfg["otp_max_attempts"]:
+        user.status = "locked"
+        db.commit()
+        raise ValueError("Too many incorrect attempts. Request a new code.")
+
+    expected = _hash_code(code, cfg["secret"])
+    if not secrets.compare_digest(expected, stored_hash):
+        setattr(user, attempts_attr, attempts + 1)
+        db.commit()
+        raise ValueError("Invalid verification code.")
+
+
 def register_user(
     db: Session,
     phone: str,
+    email: str,
     password: str,
     role: str,
     full_name: str,
@@ -133,9 +254,13 @@ def register_user(
     cfg = get_auth_config()
     _ensure_role(role)
     password_value = _ensure_password(password, cfg)
+    normalized_email = _normalize_email(email)
     existing_user, normalized_phone = _find_user_by_phone(db, phone)
     if existing_user:
         raise ValueError("phone number is already registered")
+    existing_email, _ = _find_user_by_email(db, normalized_email)
+    if existing_email:
+        raise ValueError("email is already registered")
 
     prepared = prepare_onboarding(
         role=role,
@@ -151,6 +276,7 @@ def register_user(
     user = AuthUser(
         id=uuid.uuid4().hex,
         phone=normalized_phone,
+        email=normalized_email,
         password_hash=hash_password(password_value),
         role=role,
         status="pending",
@@ -167,6 +293,7 @@ def register_user(
         prepared=prepared,
     )
 
+    _send_email_code(db, user, purpose="verification", display_name=full_name, commit=False)
     db.commit()
     db.refresh(user)
     return user
@@ -175,6 +302,11 @@ def register_user(
 def check_phone_availability(db: Session, phone: str) -> tuple[str, bool]:
     user, normalized_phone = _find_user_by_phone(db, phone)
     return normalized_phone, user is None
+
+
+def check_email_availability(db: Session, email: str) -> tuple[str, bool]:
+    user, normalized_email = _find_user_by_email(db, email)
+    return normalized_email, user is None
 
 
 def send_login_code(db: Session, user: AuthUser) -> None:
@@ -229,6 +361,16 @@ def login_user(db: Session, phone: str, password: Optional[str] = None) -> AuthU
     return user
 
 
+def send_email_verification_code(db: Session, email: str) -> AuthUser:
+    user, _ = _find_user_by_email(db, email)
+    if not user:
+        raise ValueError("No account found for that email address.")
+    if str(user.verification_status or "").lower() == "verified":
+        raise ValueError("This email address is already verified.")
+    _send_email_code(db, user, purpose="verification")
+    return user
+
+
 def issue_login_token(
     db: Session,
     user: AuthUser,
@@ -258,6 +400,49 @@ def issue_login_token(
 def try_dev_bypass_login(db: Session, user: AuthUser, device_id: Optional[str] = None) -> Optional[AuthResult]:
     if not _should_bypass_otp_for_dev():
         return None
+    return issue_login_token(db, user, mark_verified=True, device_id=device_id)
+
+
+def verify_email_code(db: Session, email: str, code: str, device_id: Optional[str] = None) -> AuthResult:
+    user, _ = _find_user_by_email(db, email)
+    if not user:
+        raise ValueError("No account found for that email address.")
+    _verify_email_code_or_raise(db, user, code, purpose="verification")
+    user.verification_status = "verified"
+    user.email_verified_at = _now()
+    _clear_email_code(user, "verification")
+    db.commit()
+    db.refresh(user)
+    return issue_login_token(db, user, mark_verified=True, device_id=device_id)
+
+
+def request_password_reset(db: Session, email: str) -> None:
+    user, _ = _find_user_by_email(db, email)
+    if not user:
+        return
+    _send_email_code(db, user, purpose="password_reset")
+
+
+def confirm_password_reset(
+    db: Session,
+    email: str,
+    code: str,
+    password: str,
+    device_id: Optional[str] = None,
+) -> AuthResult:
+    cfg = get_auth_config()
+    password_value = _ensure_password(password, cfg)
+    user, _ = _find_user_by_email(db, email)
+    if not user:
+        raise ValueError("No account found for that email address.")
+    _verify_email_code_or_raise(db, user, code, purpose="password_reset")
+    user.password_hash = hash_password(password_value)
+    user.verification_status = "verified"
+    if not user.email_verified_at:
+        user.email_verified_at = _now()
+    _clear_email_code(user, "password_reset")
+    db.commit()
+    db.refresh(user)
     return issue_login_token(db, user, mark_verified=True, device_id=device_id)
 
 

@@ -38,6 +38,7 @@ export type VisionAnalysis = {
 export type AuthUserOut = {
   id: string;
   phone: string;
+  email: string;
   role: string;
   status: string;
   verification_status: string;
@@ -46,6 +47,7 @@ export type AuthUserOut = {
 
 export type AuthRegisterPayload = {
   phone: string;
+  email: string;
   password: string;
   role: string;
   full_name: string;
@@ -60,6 +62,12 @@ export type AuthRegisterPayload = {
 export type AuthPhoneAvailabilityOut = {
   phone: string;
   normalized_phone: string;
+  available: boolean;
+};
+
+export type AuthEmailAvailabilityOut = {
+  email: string;
+  normalized_email: string;
   available: boolean;
 };
 
@@ -316,23 +324,25 @@ async function adminRequest<T>(path: string, options: RequestOptions = {}): Prom
 export const api = {
   health: () => request<{ status: string }>("/health"),
   authRegister: (payload: AuthRegisterPayload) =>
-    request<{ status: string; token?: string; user?: AuthUserOut }>("/auth/register", {
+    request<{ status: string; message: string; token?: string; user?: AuthUserOut }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   authPhoneAvailability: (phone: string) =>
     request<AuthPhoneAvailabilityOut>(`/auth/phone-availability?phone=${encodeURIComponent(phone)}`),
+  authEmailAvailability: (email: string) =>
+    request<AuthEmailAvailabilityOut>(`/auth/email-availability?email=${encodeURIComponent(email)}`),
   authLogin: (payload: { phone: string; password?: string | null }) =>
-    request<{ status: string; token?: string; user?: AuthUserOut }>("/auth/login", {
+    request<{ status: string; message?: string; token?: string; user?: AuthUserOut }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({
         ...payload,
         device_id: getDeviceId(),
       }),
     }),
-  authVerify: (payload: { phone: string; code: string }) =>
+  authVerify: (payload: { email: string; code: string }) =>
     request<{ token: string; user: AuthUserOut }>(
-      "/auth/verify-otp",
+      "/auth/verify-email",
       {
       method: "POST",
       body: JSON.stringify({
@@ -341,6 +351,21 @@ export const api = {
       }),
       }
     ),
+  authResendVerificationCode: (payload: { email: string }) =>
+    request<{ status: string; message: string; user?: AuthUserOut }>("/auth/resend-verification-code", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  authRequestPasswordReset: (payload: { email: string }) =>
+    request<{ status: string; message: string }>("/auth/forgot-password/request", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  authResetPassword: (payload: { email: string; code: string; password: string }) =>
+    request<{ token: string; user: AuthUserOut }>("/auth/forgot-password/reset", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   authMe: () => request<AuthUserOut>("/auth/me"),
   referenceDistricts: () =>
     request<{ country: string; total: number; items: UgandaDistrictOut[] }>("/reference/uganda/districts"),
