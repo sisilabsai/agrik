@@ -70,16 +70,27 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
     - `HF_FALLBACK_MODEL=<secondary-model>`
     - `HF_ALT_MODELS=modelA,modelB`
   - Audio (STT/TTS):
-    - `TTS_BACKEND=edge-tts` (recommended fast path on Python 3.12+)
+    - `TTS_BACKEND=edge-tts` (recommended default for hosted speech output)
     - Optional: `TTS_BACKEND=elevenlabs` (hosted TTS; no local model downloads)
     - Optional: `TTS_BACKEND=piper` (fully local TTS with Piper binary + ONNX voice)
     - Optional: `TTS_BACKEND=coqui` (local afro-tts, Python 3.11 required)
     - Optional: `TTS_BACKEND=huggingface` (if your selected HF TTS model is router-available)
+    - `STT_BACKEND=openai-whisper` (recommended default for local transcription)
+    - Optional: `STT_BACKEND=faster-whisper`
+    - Optional: `STT_BACKEND=huggingface`
     - `HF_AUDIO_INFERENCE_BASE_URL=https://router.huggingface.co/hf-inference/models`
     - Optional failover list: `HF_AUDIO_ALT_BASE_URLS=` (comma-separated)
     - Note: `api-inference.huggingface.co` may return `410 Gone`; prefer the router base URL above.
     - `HF_AUDIO_TIMEOUT=60`
     - `HF_AUDIO_MAX_FILE_MB=12`
+    - OpenAI Whisper local STT:
+      - `OPENAI_WHISPER_MODEL=small`
+      - Optional model path: `OPENAI_WHISPER_MODEL_PATH=`
+      - `OPENAI_WHISPER_MODEL_DIR=runtime/models/openai-whisper`
+      - `OPENAI_WHISPER_DEVICE=cpu`
+      - Install dependency: `pip install openai-whisper`
+      - Alternative from upstream repo: `pip install git+https://github.com/openai/whisper.git`
+      - Required system package on VPS: `ffmpeg`
     - `HF_STT_MODEL=openai/whisper-large-v3-turbo`
     - Optional STT alternates: `HF_STT_ALT_MODELS=openai/whisper-large-v3`
     - Local STT fallback:
@@ -155,6 +166,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
         - `PIPER_NOISE_W=0.8`
     - Install dependency: `pip install edge-tts` (fast path)
     - Local STT dependency: `pip install faster-whisper`
+    - Local OpenAI Whisper dependency: `pip install openai-whisper`
     - Optional local afro-tts dependency: `pip install -r requirements-coqui.txt` (Python 3.9-3.11 only; use a 3.11 venv)
   - `HF_VISION_MODEL=<vision_model_id>` (example: `linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification`)
   - Optional: `HF_VISION_ALT_MODELS=modelA,modelB` (used for compare/deep-analysis mode)
@@ -191,7 +203,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
 - Frontend supports still photo upload and short video upload (up to 5 seconds, converted to still frames before submission).
 - Web audio endpoints:
   - `POST /chat/transcribe-audio` (multipart `audio` + optional `locale_hint`) for STT.
-    - If Hugging Face STT is unreachable, the app falls back to local `faster-whisper` when enabled.
+    - STT now honors `STT_BACKEND` directly, so you can use local OpenAI Whisper or local `faster-whisper` without touching Hugging Face.
   - `POST /chat/synthesize-audio` (`text`, optional `locale_hint`, optional `voice_hint`) for TTS.
 - Realtime voice websocket scaffold:
   - `WS /chat/realtime-voice?token=<jwt>`
@@ -204,6 +216,7 @@ Phase 1 foundation for SMS/Voice-first agricultural intelligence.
   - voice profile selector (`Ugandan`, `East African`, `Neutral`, `Auto`) applied to TTS + realtime voice
   - realtime voice scaffold controls: session connect + live chunk stream
   - optional local STT fallback via `python app/scripts/setup_faster_whisper.py`
+  - optional local OpenAI Whisper warm-up via `python app/scripts/setup_openai_whisper.py`
 
 ### Ugandan voice setup (practical)
 - Fastest no-training path:

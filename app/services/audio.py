@@ -54,6 +54,9 @@ _COQUI_MODEL_TAG: str = ""
 _FASTER_WHISPER_LOCK = threading.Lock()
 _FASTER_WHISPER_MODEL: Any = None
 _FASTER_WHISPER_MODEL_TAG: str = ""
+_OPENAI_WHISPER_LOCK = threading.Lock()
+_OPENAI_WHISPER_MODEL: Any = None
+_OPENAI_WHISPER_MODEL_TAG: str = ""
 
 VOICE_PROFILE_ALIASES = {
     "auto": "auto",
@@ -499,12 +502,9 @@ def _ensure_audio_provider_ready(
     *,
     check_model_unavailable: bool = True,
 ) -> tuple[str, float, bool]:
-    if cfg.get("provider") != "huggingface":
-        raise AudioUnavailableError("Audio features require AI_PROVIDER=huggingface.")
-
     token = str(cfg.get("hf_token") or "").strip()
     if not token:
-        raise AudioUnavailableError("HUGGINGFACE_API_TOKEN is missing. Audio fallback is disabled.")
+        raise AudioUnavailableError("HUGGINGFACE_API_TOKEN is missing for the Hugging Face audio backend.")
 
     model = str(cfg.get(model_key) or "").strip()
     if not model:
@@ -1133,6 +1133,138 @@ def _whisper_language_for_locale(locale_hint: str | None) -> str | None:
     return LOCALE_STT_LANGUAGE_MAP.get(normalized)
 
 
+def _normalize_stt_backend_name(value: str | None) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    aliases = {
+        "hf": "huggingface",
+        "faster-whisper": "faster-whisper",
+        "fasterwhisper": "faster-whisper",
+        "openai-whisper": "openai-whisper",
+        "openaiwhisper": "openai-whisper",
+        "whisper": "openai-whisper",
+        "local-whisper": "openai-whisper",
+        "local": "openai-whisper",
+        "none": "",
+        "off": "",
+        "disabled": "",
+    }
+    return aliases.get(normalized, normalized)
+
+
+def _openai_whisper_model_label(cfg: Dict[str, Any]) -> str:
+    return (
+        str(cfg.get("openai_whisper_model_path") or "").strip()
+        or str(cfg.get("openai_whisper_model") or "small").strip()
+        or "small"
+    )
+
+
+def _ensure_openai_whisper_model(cfg: Dict[str, Any]) -> Any:
+    global _OPENAI_WHISPER_MODEL, _OPENAI_WHISPER_MODEL_TAG
+
+    configured_model_path = str(cfg.get("openai_whisper_model_path") or "").strip()
+    model_name = str(cfg.get("openai_whisper_model") or "small").strip() or "small"
+    model_dir = str(cfg.get("openai_whisper_model_dir") or "runtime/models/openai-whisper").strip() or "runtime/models/openai-whisper"
+    device = str(cfg.get("openai_whisper_device") or "cpu").strip().lower() or "cpu"
+    model_source = configured_model_path or model_name
+    model_tag = f"{model_source}|{model_dir}|{device}"
+
+    with _OPENAI_WHISPER_LOCK:
+        if _OPENAI_WHISPER_MODEL is not None and _OPENAI_WHISPER_MODEL_TAG == model_tag:
+            return _OPENAI_WHISPER_MODEL
+
+        try:
+            import whisper  # type: ignore
+        except ImportError as exc:
+            raise AudioUnavailableError(
+                "openai-whisper is not installed. Run `pip install openai-whisper` "
+                "or `pip install git+https://github.com/openai/whisper.git`."
+            ) from exc
+
+        download_root = Path(model_dir)
+        download_root.mkdir(parents=True, exist_ok=True)
+        try:
+            model = whisper.load_model(model_source, device=device, download_root=str(download_root))
+        except Exception as exc:
+            raise AudioUnavailableError(
+                f"Failed to load OpenAI Whisper model '{model_source}': {_trim(exc, 260)}"
+            ) from exc
+
+        _OPENAI_WHISPER_MODEL = model
+        _OPENAI_WHISPER_MODEL_TAG = model_tag
+        return _OPENAI_WHISPER_MODEL
+
+
+def _transcribe_openai_whisper(
+    *,
+    validated: ValidatedAudio,
+    locale_hint: str | None,
+    cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    model = _ensure_openai_whisper_model(cfg)
+    language_hint = _whisper_language_for_locale(locale_hint)
+    device = str(cfg.get("openai_whisper_device") or "cpu").strip().lower() or "cpu"
+
+    fd, temp_path = tempfile.mkstemp(
+        prefix="agrik-openai-whisper-",
+        suffix=_audio_suffix_for_mime(validated.mime_type, validated.filename),
+    )
+    os.close(fd)
+    path = Path(temp_path)
+    try:
+        path.write_bytes(validated.content)
+        options: Dict[str, Any] = {
+            "temperature": 0.0,
+            "condition_on_previous_text": False,
+            "fp16": device != "cpu",
+        }
+        if language_hint:
+            options["language"] = language_hint
+        try:
+            result = model.transcribe(str(path), **options)
+        except Exception as exc:
+            detail = _trim(exc, 260)
+            if "ffmpeg" in detail.lower():
+                raise AudioUnavailableError(
+                    "OpenAI Whisper transcription failed because ffmpeg is missing. Install ffmpeg on the server."
+                ) from exc
+            raise AudioUnavailableError(f"OpenAI Whisper transcription failed: {detail}") from exc
+
+        transcript = str((result or {}).get("text") or "").strip()
+        if not transcript:
+            raise AudioUnavailableError("OpenAI Whisper returned no transcript.")
+
+        detected_language = str((result or {}).get("language") or "").strip() or detect_language(
+            transcript,
+            normalize_locale_hint(locale_hint),
+        )[0]
+        return {
+            "transcript": transcript,
+            "language": detected_language or "en",
+            "confidence": 0.8,
+            "model": f"openai-whisper:{_openai_whisper_model_label(cfg)}",
+        }
+    finally:
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            logger.warning("Failed to clean up OpenAI Whisper temp file: %s", path)
+
+
+async def _transcribe_local_openai_whisper_async(
+    *,
+    validated: ValidatedAudio,
+    locale_hint: str | None,
+    cfg: Dict[str, Any],
+) -> Dict[str, Any]:
+    return await asyncio.to_thread(
+        _transcribe_openai_whisper,
+        validated=validated,
+        locale_hint=locale_hint,
+        cfg=cfg,
+    )
+
+
 def _ensure_faster_whisper_model(cfg: Dict[str, Any]) -> Any:
     global _FASTER_WHISPER_MODEL, _FASTER_WHISPER_MODEL_TAG
 
@@ -1377,38 +1509,57 @@ async def _transcribe_validated_audio(
     locale_hint: str | None,
     cfg: Dict[str, Any],
 ) -> Dict[str, Any]:
-    remote_error = ""
-    local_error = ""
-
-    try:
-        return await _transcribe_huggingface_audio(
-            validated=validated,
-            locale_hint=locale_hint,
-            cfg=cfg,
-        )
-    except AudioUnavailableError as exc:
-        remote_error = str(exc)
-        logger.warning("Remote STT unavailable for %s: %s", validated.filename, remote_error)
-
-    fallback_backend = str(cfg.get("stt_fallback_backend") or "").strip().lower()
-    if fallback_backend in {"faster-whisper", "faster_whisper", "fasterwhisper"}:
-        try:
-            result = await _transcribe_local_faster_whisper_async(
+    async def _transcribe_with_backend(backend_name: str) -> Dict[str, Any]:
+        normalized = _normalize_stt_backend_name(backend_name)
+        if normalized == "huggingface":
+            return await _transcribe_huggingface_audio(
                 validated=validated,
                 locale_hint=locale_hint,
                 cfg=cfg,
             )
+        if normalized == "faster-whisper":
+            return await _transcribe_local_faster_whisper_async(
+                validated=validated,
+                locale_hint=locale_hint,
+                cfg=cfg,
+            )
+        if normalized == "openai-whisper":
+            return await _transcribe_local_openai_whisper_async(
+                validated=validated,
+                locale_hint=locale_hint,
+                cfg=cfg,
+            )
+        raise AudioUnavailableError(f"Unsupported STT backend: {backend_name or 'unknown'}.")
+
+    primary_backend = _normalize_stt_backend_name(cfg.get("stt_backend"))
+    fallback_backend = _normalize_stt_backend_name(cfg.get("stt_fallback_backend"))
+    errors: list[str] = []
+
+    backends = [backend for backend in [primary_backend, fallback_backend] if backend]
+    seen: set[str] = set()
+    ordered_backends: list[str] = []
+    for backend in backends:
+        if backend in seen:
+            continue
+        seen.add(backend)
+        ordered_backends.append(backend)
+
+    for backend in ordered_backends:
+        try:
+            result = await _transcribe_with_backend(backend)
             logger.info(
-                "Local faster-whisper STT fallback succeeded file=%s model=%s",
+                "STT succeeded backend=%s file=%s model=%s",
+                backend,
                 validated.filename,
-                result.get("model", "faster-whisper"),
+                result.get("model", backend),
             )
             return result
         except AudioUnavailableError as exc:
-            local_error = str(exc)
-            logger.warning("Local faster-whisper STT fallback failed for %s: %s", validated.filename, local_error)
+            detail = str(exc)
+            errors.append(f"{backend}: {detail}")
+            logger.warning("STT backend failed backend=%s file=%s error=%s", backend, validated.filename, detail)
 
-    raise AudioUnavailableError(local_error or remote_error or "Speech-to-text request failed. Try again.")
+    raise AudioUnavailableError("; ".join(errors) or "Speech-to-text request failed. Try again.")
 
 
 async def transcribe_audio_upload(upload: UploadFile, locale_hint: str | None = None) -> Dict[str, Any]:
@@ -1440,7 +1591,7 @@ async def synthesize_speech(
     voice_hint: str | None = None,
 ) -> AudioSynthesisResult:
     cfg = get_ai_provider_config()
-    backend = str(cfg.get("tts_backend") or "huggingface").strip().lower()
+    backend = str(cfg.get("tts_backend") or "edge-tts").strip().lower()
     cleaned = str(text or "").strip()
     if not cleaned:
         raise AudioValidationError("Text is required for speech synthesis.")
