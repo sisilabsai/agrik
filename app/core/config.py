@@ -239,10 +239,20 @@ def get_ai_provider_config() -> dict:
 
     return {
         "provider": os.getenv("AI_PROVIDER", "none").strip().lower(),
+        "advisory_provider": os.getenv("GRIK_CHAT_PROVIDER", os.getenv("AI_PROVIDER", "none")).strip().lower(),
         "hf_token": os.getenv("HUGGINGFACE_API_TOKEN", "").strip(),
         "hf_model": os.getenv("HF_MODEL", "").strip(),
         "hf_fallback_model": os.getenv("HF_FALLBACK_MODEL", "").strip(),
         "hf_alt_models": [token.strip() for token in os.getenv("HF_ALT_MODELS", "").split(",") if token.strip()],
+        "gemini_api_key": os.getenv("GEMINI_API_KEY", "").strip(),
+        "gemini_base_url": os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta").strip(),
+        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-flash-latest").strip(),
+        "gemini_fallback_model": os.getenv("GEMINI_FALLBACK_MODEL", "").strip(),
+        "gemini_alt_models": [token.strip() for token in os.getenv("GEMINI_ALT_MODELS", "").split(",") if token.strip()],
+        "gemini_timeout": _to_float(os.getenv("GEMINI_TIMEOUT", "30"), 30.0),
+        "gemini_temperature": _to_float(os.getenv("GEMINI_TEMPERATURE", "0.2"), 0.2),
+        "gemini_max_output_tokens": _to_int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "900"), 900),
+        "gemini_requests_per_minute": _to_int(os.getenv("GEMINI_REQUESTS_PER_MINUTE", "12"), 12),
         "tts_backend": os.getenv("TTS_BACKEND", "huggingface").strip().lower(),
         "hf_audio_inference_base_url": os.getenv(
             "HF_AUDIO_INFERENCE_BASE_URL",

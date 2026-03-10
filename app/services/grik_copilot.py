@@ -3,7 +3,8 @@ import logging
 import re
 import time
 import uuid
-from collections import Counter
+from collections import Counter, defaultdict, deque
+from threading import Lock
 from typing import Any, Dict, List
 
 import httpx
@@ -23,6 +24,9 @@ from app.services.user_settings import get_or_create_settings
 from app.services.weather import geocode_location, get_daily_forecast, summarize_daily_forecast
 
 logger = logging.getLogger("agrik.grik_copilot")
+
+_PROVIDER_RATE_BUCKETS: dict[str, deque[float]] = defaultdict(deque)
+_PROVIDER_RATE_LOCK = Lock()
 
 
 class AIUnavailableError(RuntimeError):
@@ -99,6 +103,65 @@ def _retry_after_seconds(value: str | None, default_wait: float) -> float:
     except ValueError:
         wait = default_wait
     return min(8.0, max(0.5, wait))
+
+
+def _advisory_provider(cfg: Dict[str, Any]) -> str:
+    return str(cfg.get("advisory_provider") or cfg.get("provider") or "none").strip().lower()
+
+
+def _wait_for_provider_slot(provider_key: str, requests_per_minute: int) -> None:
+    if requests_per_minute <= 0:
+        return
+    while True:
+        now = time.monotonic()
+        with _PROVIDER_RATE_LOCK:
+            bucket = _PROVIDER_RATE_BUCKETS[provider_key]
+            while bucket and (now - bucket[0]) >= 60.0:
+                bucket.popleft()
+            if len(bucket) < requests_per_minute:
+                bucket.append(now)
+                return
+            wait_for = max(0.25, 60.0 - (now - bucket[0]))
+        logger.info("AI rate limiter waiting provider=%s wait=%.2fs rpm=%s", provider_key, wait_for, requests_per_minute)
+        time.sleep(min(wait_for, 5.0))
+
+
+def _gemini_candidate_models(cfg: Dict[str, Any]) -> List[str]:
+    candidates = [
+        str(cfg.get("gemini_model") or "").strip(),
+        str(cfg.get("gemini_fallback_model") or "").strip(),
+        *[str(item).strip() for item in (cfg.get("gemini_alt_models") or []) if str(item).strip()],
+    ]
+    ordered: List[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate:
+            continue
+        key = candidate.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(candidate)
+    return ordered
+
+
+def _extract_gemini_text(payload: Dict[str, Any]) -> str:
+    candidates = payload.get("candidates")
+    if not isinstance(candidates, list) or not candidates:
+        return ""
+    first = candidates[0] if isinstance(candidates[0], dict) else {}
+    content = first.get("content") if isinstance(first, dict) else {}
+    parts = content.get("parts") if isinstance(content, dict) else []
+    if not isinstance(parts, list):
+        return ""
+    chunks: List[str] = []
+    for part in parts:
+        if not isinstance(part, dict):
+            continue
+        text = part.get("text")
+        if isinstance(text, str) and text.strip():
+            chunks.append(text.strip())
+    return "\n".join(chunks).strip()
 
 
 def _call_hf_chat(
@@ -227,19 +290,165 @@ def _chat_candidate_models(cfg: Dict[str, Any]) -> List[str]:
     return ordered
 
 
-def _require_huggingface(messages: List[Dict[str, str]], purpose: str) -> str:
+def _call_gemini_chat(
+    models: List[str],
+    messages: List[Dict[str, str]],
+    max_tokens: int,
+    temperature: float,
+) -> str:
     cfg = get_ai_provider_config()
-    if cfg.get("provider") != "huggingface":
-        raise AIUnavailableError("GRIK AI provider is not set to huggingface.")
-    if not cfg.get("hf_token"):
-        raise AIUnavailableError("HUGGINGFACE_API_TOKEN is missing. GRIK fallback replies are disabled.")
-    if not _chat_candidate_models(cfg):
-        raise AIUnavailableError("HF_MODEL is missing and no fallback advisory model is configured.")
+    if not cfg.get("gemini_api_key"):
+        return ""
 
-    generated = _call_huggingface(messages)
-    if not generated.strip():
-        raise AIUnavailableError(f"Hugging Face did not return a usable response for {purpose} across configured models.")
-    return generated
+    base_url = str(cfg.get("gemini_base_url") or "").rstrip("/")
+    if not base_url:
+        return ""
+
+    system_parts = [{"text": str(message.get("content") or "").strip()} for message in messages if message.get("role") == "system" and str(message.get("content") or "").strip()]
+    contents: List[Dict[str, Any]] = []
+    for message in messages:
+        role = str(message.get("role") or "").strip().lower()
+        if role == "system":
+            continue
+        content = str(message.get("content") or "").strip()
+        if not content:
+            continue
+        contents.append(
+            {
+                "role": "model" if role == "assistant" else "user",
+                "parts": [{"text": content}],
+            }
+        )
+
+    if not contents:
+        return ""
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-goog-api-key": str(cfg.get("gemini_api_key")),
+    }
+    client_timeout = float(cfg.get("gemini_timeout", 30.0))
+    requests_per_minute = int(cfg.get("gemini_requests_per_minute", 12))
+    tried_models: List[str] = []
+    for model in models:
+        clean_model = (model or "").strip()
+        if not clean_model or clean_model in tried_models:
+            continue
+        tried_models.append(clean_model)
+        endpoint = f"{base_url}/models/{clean_model}:generateContent"
+        payload: Dict[str, Any] = {
+            "contents": contents,
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            },
+        }
+        if system_parts:
+            payload["systemInstruction"] = {"parts": system_parts}
+
+        attempts = 3
+        with httpx.Client(timeout=client_timeout) as client:
+            for attempt in range(1, attempts + 1):
+                _wait_for_provider_slot(f"gemini:{clean_model}", requests_per_minute)
+                try:
+                    response = client.post(endpoint, headers=headers, json=payload)
+                except httpx.HTTPError as exc:
+                    if attempt < attempts:
+                        wait_for = _retry_after_seconds(None, default_wait=0.9 * attempt)
+                        logger.warning(
+                            "Gemini chat transport retry model=%s attempt=%s/%s wait=%.1fs error=%s",
+                            clean_model,
+                            attempt,
+                            attempts,
+                            wait_for,
+                            exc,
+                        )
+                        time.sleep(wait_for)
+                        continue
+                    logger.warning("Gemini chat failed model=%s error=%s", clean_model, exc)
+                    break
+
+                if response.status_code in {429, 503} and attempt < attempts:
+                    wait_for = _retry_after_seconds(response.headers.get("retry-after"), default_wait=1.2 * attempt)
+                    logger.warning(
+                        "Gemini chat retry status=%s model=%s attempt=%s/%s wait=%.1fs",
+                        response.status_code,
+                        clean_model,
+                        attempt,
+                        attempts,
+                        wait_for,
+                    )
+                    time.sleep(wait_for)
+                    continue
+
+                try:
+                    response.raise_for_status()
+                    data = response.json()
+                except (httpx.HTTPError, ValueError) as exc:
+                    logger.warning("Gemini chat failed model=%s error=%s", clean_model, exc)
+                    break
+
+                data_dict = data if isinstance(data, dict) else {}
+                text = _extract_gemini_text(data_dict)
+                if text:
+                    return text
+                break
+    return ""
+
+
+def _call_advisory_chat(
+    messages: List[Dict[str, str]],
+    purpose: str,
+    *,
+    max_tokens: int | None = None,
+    temperature: float | None = None,
+    models: List[str] | None = None,
+) -> str:
+    cfg = get_ai_provider_config()
+    provider = _advisory_provider(cfg)
+    if provider == "gemini":
+        return _call_gemini_chat(
+            models=models or _gemini_candidate_models(cfg),
+            messages=messages,
+            max_tokens=max_tokens or int(cfg.get("gemini_max_output_tokens", 900)),
+            temperature=temperature if temperature is not None else float(cfg.get("gemini_temperature", 0.2)),
+        )
+    if provider == "huggingface":
+        return _call_hf_chat(
+            models=models or _chat_candidate_models(cfg),
+            messages=messages,
+            max_tokens=max_tokens or int(cfg.get("hf_max_tokens", 900)),
+            temperature=temperature if temperature is not None else float(cfg.get("hf_temperature", 0.2)),
+        )
+    raise AIUnavailableError(
+        f"GRIK advisory provider '{provider or 'none'}' is not supported. Configure GRIK_CHAT_PROVIDER=gemini or huggingface."
+    )
+
+
+def _require_advisory_generation(messages: List[Dict[str, str]], purpose: str) -> str:
+    cfg = get_ai_provider_config()
+    provider = _advisory_provider(cfg)
+    if provider == "gemini":
+        if not cfg.get("gemini_api_key"):
+            raise AIUnavailableError("GEMINI_API_KEY is missing for GRIK advisory generation.")
+        if not _gemini_candidate_models(cfg):
+            raise AIUnavailableError("GEMINI_MODEL is missing and no Gemini fallback advisory model is configured.")
+        generated = _call_advisory_chat(messages, purpose)
+        if not generated.strip():
+            raise AIUnavailableError(f"Gemini did not return a usable response for {purpose} across configured models.")
+        return generated
+    if provider == "huggingface":
+        if not cfg.get("hf_token"):
+            raise AIUnavailableError("HUGGINGFACE_API_TOKEN is missing. GRIK fallback replies are disabled.")
+        if not _chat_candidate_models(cfg):
+            raise AIUnavailableError("HF_MODEL is missing and no fallback advisory model is configured.")
+        generated = _call_advisory_chat(messages, purpose)
+        if not generated.strip():
+            raise AIUnavailableError(f"Hugging Face did not return a usable response for {purpose} across configured models.")
+        return generated
+    raise AIUnavailableError(
+        f"GRIK advisory provider '{provider or 'none'}' is not configured. Set GRIK_CHAT_PROVIDER=gemini for dashboard brain requests."
+    )
 
 
 def _translation_quality_ok(text: str) -> bool:
@@ -772,8 +981,9 @@ def _generate_follow_up_prompts(
         candidates.extend(extracted_prompts)
 
     cfg = get_ai_provider_config()
-    if cfg.get("provider") == "huggingface" and cfg.get("hf_token"):
-        models = [str(cfg.get("hf_model") or "").strip()]
+    provider = _advisory_provider(cfg)
+    if provider in {"huggingface", "gemini"}:
+        models = _gemini_candidate_models(cfg) if provider == "gemini" else _chat_candidate_models(cfg)
         messages = [
             {
                 "role": "system",
@@ -797,9 +1007,10 @@ def _generate_follow_up_prompts(
                 ),
             },
         ]
-        generated = _call_hf_chat(
-            models=models,
+        generated = _call_advisory_chat(
             messages=messages,
+            purpose="follow-up prompt generation",
+            models=models,
             max_tokens=180,
             temperature=0.25,
         )
@@ -1117,7 +1328,7 @@ def _rewrite_to_structured_advisory(
             ),
         },
     ]
-    rewritten = _call_huggingface(messages)
+    rewritten = _call_advisory_chat(messages, "structured advisory rewrite")
     return _clean_model_reply(rewritten)
 
 
@@ -1253,7 +1464,7 @@ def generate_grik_chat_advice(
         recent_chats=recent_chats,
         recent_interactions=recent_interactions,
     )
-    generated = _require_huggingface(
+    generated = _require_advisory_generation(
         [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
