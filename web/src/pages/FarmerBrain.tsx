@@ -2504,6 +2504,7 @@ export default function FarmerBrain() {
                 key={prompt}
                 className="grik-prompt-card"
                 type="button"
+                title={prompt}
                 disabled={sending || mediaBusy || sttBusy || isRecording || realtimeListening}
                 onClick={() => void ask(prompt, buildMediaAskOptions())}
               >

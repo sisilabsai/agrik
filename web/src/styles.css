@@ -3220,13 +3220,20 @@ a {
 }
 
 .grik-prompt-card {
+  display: flex;
+  align-items: flex-start;
   padding: 12px 14px;
+  min-height: 68px;
   border-radius: 16px;
   border: 1px solid rgba(11, 11, 11, 0.1);
   background: rgba(255, 255, 255, 0.92);
   text-align: left;
   font: inherit;
   color: inherit;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }

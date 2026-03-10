@@ -949,6 +949,108 @@ def _normalize_follow_up_key(text: str) -> str:
     return key
 
 
+def _sanitize_follow_up_prompt(text: str) -> str:
+    prompt = re.sub(r"\s+", " ", str(text or "")).strip()
+    prompt = prompt.strip("\"' ")
+    prompt = prompt.rstrip(".?")
+    return prompt
+
+
+def _is_incomplete_follow_up(text: str) -> bool:
+    prompt = _sanitize_follow_up_prompt(text)
+    if not prompt:
+        return True
+
+    words = re.findall(r"[A-Za-z0-9]+", prompt)
+    if len(words) < 4:
+        return True
+
+    lowered = prompt.lower()
+    if lowered.endswith(("...", "…", ":", ";", ",", "-", "/")):
+        return True
+
+    trailing_tokens = {
+        "a",
+        "an",
+        "and",
+        "around",
+        "about",
+        "for",
+        "from",
+        "if",
+        "in",
+        "into",
+        "my",
+        "of",
+        "on",
+        "or",
+        "the",
+        "to",
+        "under",
+        "using",
+        "with",
+    }
+    if words and words[-1].lower() in trailing_tokens:
+        return True
+
+    return False
+
+
+def _fallback_follow_up_prompts(
+    *,
+    crop: str,
+    location_label: str | None,
+    intent: str,
+) -> List[str]:
+    crop_label = crop if crop and crop.lower() != "mixed farm" else "my farm"
+    location_suffix = f" in {location_label}" if location_label else ""
+
+    templates_by_intent: Dict[str, List[str]] = {
+        "symptom_diagnosis": [
+            f"List likely causes affecting {crop_label}{location_suffix}",
+            f"Build a 7-day treatment checklist for {crop_label}",
+            f"Show signs that mean {crop_label} is improving",
+        ],
+        "pest_monitoring": [
+            f"Build a weekly scouting routine for {crop_label}",
+            f"List high-risk pests for {crop_label}{location_suffix}",
+            f"Show threshold signs before I intervene on {crop_label}",
+        ],
+        "weather_planning": [
+            f"Adjust this week's field work for {crop_label}{location_suffix}",
+            f"Plan irrigation and drainage steps for {crop_label}",
+            f"List weather risks to monitor on {crop_label}",
+        ],
+        "market_planning": [
+            f"Build a harvest and selling plan for {crop_label}",
+            f"Estimate value-adding options for {crop_label}",
+            f"List price signals I should track this week",
+        ],
+        "crop_selection": [
+            f"Compare the best crop options for {location_label or 'my area'}",
+            "List input needs and costs for each crop option",
+            "Rank the safest crops for this season",
+        ],
+        "pre_plant_planning": [
+            f"Build a land preparation checklist for {crop_label}",
+            f"List seed, spacing, and fertilizer needs for {crop_label}",
+            f"Create a planting week plan for {crop_label}",
+        ],
+        "establishment": [
+            f"Build a first 21-day care plan for {crop_label}",
+            f"List early warning signs to monitor in {crop_label}",
+            f"Show gap-filling and weed-control steps for {crop_label}",
+        ],
+        "general_agronomy": [
+            f"Build a weekly management checklist for {crop_label}",
+            f"List the biggest production risks for {crop_label}",
+            f"Show low-cost practices to improve {crop_label} yield",
+        ],
+    }
+    prompts = templates_by_intent.get(intent) or templates_by_intent["general_agronomy"]
+    return [_sanitize_follow_up_prompt(item) for item in prompts if not _is_incomplete_follow_up(item)][:3]
+
+
 def _parse_numbered_prompts(text: str) -> List[str]:
     prompts: List[str] = []
     for raw in (text or "").splitlines():
@@ -957,8 +1059,7 @@ def _parse_numbered_prompts(text: str) -> List[str]:
             continue
         line = re.sub(r"^\d+\.\s*", "", line).strip()
         line = re.sub(r"^[-*]\s*", "", line).strip()
-        line = line.strip("\"' ")
-        line = line.rstrip(".?")
+        line = _sanitize_follow_up_prompt(line)
         if not line:
             continue
         prompts.append(line)
@@ -988,21 +1089,27 @@ def _generate_follow_up_prompts(
             {
                 "role": "system",
                 "content": (
-                    "Generate short, tap-ready user prompts for the next assistant turn. "
-                    "Use imperative request style and avoid questions."
+                    "Generate short, tap-ready user requests for the next assistant turn. "
+                    "Each line must be a complete, natural request a farmer can click and send as-is. "
+                    "Never return fragments, dangling endings, or questions."
                 ),
             },
             {
                 "role": "user",
                 "content": (
                     f"Intent: {intent}\n"
+                    f"Crop focus: {crop or 'not clear'}\n"
+                    f"Location: {location_label or 'not provided'}\n"
                     f"Original farmer message: {question}\n"
                     f"Current advisory summary:\n{_trim(reply_en, 900)}\n\n"
                     "Return exactly 3 numbered prompts the farmer can click/send next.\n"
                     "Rules:\n"
-                    "- Keep each prompt under 14 words.\n"
+                    "- Keep each prompt between 6 and 14 words.\n"
                     "- Use user-request style (example: 'Build a 7-day scouting plan for my maize').\n"
                     "- Do not ask questions.\n"
+                    "- Each prompt must stand alone and be fully complete.\n"
+                    "- Do not end with words like 'to', 'for', 'with', 'about', or 'the'.\n"
+                    "- Prefer action-oriented prompts that deepen diagnosis, monitoring, or decisions.\n"
                     "- Avoid repeating the same wording.\n"
                 ),
             },
@@ -1011,7 +1118,7 @@ def _generate_follow_up_prompts(
             messages=messages,
             purpose="follow-up prompt generation",
             models=models,
-            max_tokens=180,
+            max_tokens=240,
             temperature=0.25,
         )
         candidates.extend(_parse_numbered_prompts(generated))
@@ -1026,10 +1133,11 @@ def _generate_follow_up_prompts(
     final_prompts: List[str] = []
     seen: set[str] = set()
     for raw in candidates:
-        prompt = (raw or "").strip()
+        prompt = _sanitize_follow_up_prompt(raw)
         if not prompt:
             continue
-        prompt = prompt.rstrip(".?")
+        if _is_incomplete_follow_up(prompt):
+            continue
         key = _normalize_follow_up_key(prompt)
         if not key or key in seen:
             continue
@@ -1039,6 +1147,18 @@ def _generate_follow_up_prompts(
         final_prompts.append(prompt)
         if len(final_prompts) >= 3:
             break
+
+    if len(final_prompts) < 3:
+        for fallback in _fallback_follow_up_prompts(crop=crop, location_label=location_label, intent=intent):
+            key = _normalize_follow_up_key(fallback)
+            if not key or key in seen:
+                continue
+            if any(key == old or key in old or old in key for old in recent_user_messages):
+                continue
+            seen.add(key)
+            final_prompts.append(fallback)
+            if len(final_prompts) >= 3:
+                break
 
     return final_prompts[:3]
 
@@ -1173,6 +1293,7 @@ def _build_system_prompt(language: str, intent: str = "general_agronomy") -> str
             "Respond naturally and clearly, without assuming the topic is farming.\n"
             "If the user asks a farm question, provide practical farm guidance.\n"
             "If the user asks a general question, answer directly and briefly.\n"
+            "Reason carefully, answer the core request first, and ask for clarification only when necessary.\n"
             f"{language_hint}\n"
             "Use GitHub-flavored Markdown only when helpful. No rigid section template is required."
         )
@@ -1181,16 +1302,21 @@ def _build_system_prompt(language: str, intent: str = "general_agronomy") -> str
         "Use grounded context first, then apply sound agronomy reasoning when context is incomplete.\n"
         "Do not fabricate products, institutions, policies, or numeric claims.\n"
         "If you infer beyond explicit references, keep it practical and state assumptions briefly.\n"
+        "Think like a strong field advisor: identify the likely issue, sequence actions by urgency, and call out the main uncertainty.\n"
         f"{language_hint}\n"
         "Return GitHub-flavored Markdown and keep it practical.\n"
         "Use this exact section order:\n"
         "### Quick diagnosis\n"
+        "State the most likely issue, why it fits, and the single biggest uncertainty.\n"
         "### Immediate actions (today)\n"
         "Include a markdown table with columns: Action | How to do it | Why it matters.\n"
+        "Order actions from highest urgency to lowest.\n"
         "### 7-day plan\n"
+        "Give a short day-by-day or phase-based plan.\n"
         "### Monitoring checklist\n"
+        "Use concise bullets with observable field signs.\n"
         "### Suggested next prompts\n"
-        "Add 3 numbered prompt suggestions written as user requests (not questions).\n"
+        "Add 3 numbered prompt suggestions written as complete user requests (not questions).\n"
         "Do not use code blocks."
     )
 
@@ -1235,7 +1361,7 @@ def _build_user_prompt(
             f"User question:\n{question}\n\n"
             "Instructions:\n"
             "- Answer conversationally like a human assistant.\n"
-            "- Keep the answer practical and clear.\n"
+            "- Keep the answer practical, clear, and logically sequenced.\n"
             "- Do not force farming context unless the user asks for it.\n"
             "- If the request is ambiguous, ask one concise clarification question."
         )
@@ -1282,6 +1408,9 @@ def _build_user_prompt(
         "- Keep actions realistic for smallholder farmers.\n"
         "- Prefer Uganda-grounded context, but reason with general agronomy principles when needed.\n"
         "- If assumptions are made, keep them short and operational.\n"
+        "- Explain the likely cause or decision logic, not just the recommendation.\n"
+        "- Prioritize actions by urgency and expected impact.\n"
+        "- If critical details are missing, say what is missing without blocking the answer.\n"
         "- Mention weather or market only if relevant.\n"
         "- Keep each table cell short and clear."
     )
