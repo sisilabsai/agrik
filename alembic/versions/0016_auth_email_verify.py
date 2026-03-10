@@ -1,6 +1,6 @@
 """auth user email verification and reset fields
 
-Revision ID: 0016_auth_user_email_verification
+Revision ID: 0016_auth_email_verify
 Revises: 0015_admin_tables
 Create Date: 2026-03-10
 """
@@ -8,7 +8,7 @@ Create Date: 2026-03-10
 from alembic import op
 import sqlalchemy as sa
 
-revision = "0016_auth_user_email_verification"
+revision = "0016_auth_email_verify"
 down_revision = "0015_admin_tables"
 branch_labels = None
 depends_on = None
