@@ -17,6 +17,7 @@ def _serialize_user(user) -> AuthUserOut:
     return AuthUserOut(
         id=user.id,
         phone=user.phone,
+        email=user.email,
         role=user.role,
         status=user.status,
         verification_status=user.verification_status,

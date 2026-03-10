@@ -1,18 +1,43 @@
-﻿from typing import Optional
+from typing import Optional
+
 from sqlalchemy.orm import Session
-from app.db.models import AuthUserSettings
+
+from app.db.models import AuthUserProfile, AuthUserSettings
+
+
+def _has_text(value: str | None) -> bool:
+    return bool((value or "").strip())
+
+
+def _sync_location_from_identity(db: Session, settings: AuthUserSettings) -> AuthUserSettings:
+    identity = db.query(AuthUserProfile).filter(AuthUserProfile.user_id == settings.user_id).first()
+    if not identity:
+        return settings
+
+    changed = False
+    if not _has_text(settings.district) and _has_text(identity.district):
+        settings.district = identity.district
+        changed = True
+    if not _has_text(settings.parish) and _has_text(identity.parish):
+        settings.parish = identity.parish
+        changed = True
+
+    if changed:
+        db.commit()
+        db.refresh(settings)
+    return settings
 
 
 def get_or_create_settings(db: Session, user_id: str) -> AuthUserSettings:
     settings = db.query(AuthUserSettings).filter(AuthUserSettings.user_id == user_id).first()
     if settings:
-        return settings
+        return _sync_location_from_identity(db, settings)
 
     settings = AuthUserSettings(user_id=user_id)
     db.add(settings)
     db.commit()
     db.refresh(settings)
-    return settings
+    return _sync_location_from_identity(db, settings)
 
 
 def update_settings(
