@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Icon } from "../components/Visuals";
 import { api } from "../lib/api";
 
@@ -21,7 +22,7 @@ type ProfileDetails = {
   };
 };
 
-type SettingsForm = {
+export type SettingsForm = {
   preferredLanguage: string;
   district: string;
   parish: string;
@@ -31,7 +32,7 @@ type SettingsForm = {
   priceAlerts: boolean;
 };
 
-type FarmFinance = {
+export type FarmFinance = {
   currency: string;
   plannedInputCost: string;
   plannedLaborCost: string;
@@ -45,7 +46,7 @@ type FarmFinance = {
   notes: string;
 };
 
-type FarmInsurance = {
+export type FarmInsurance = {
   enrolled: boolean;
   provider: string;
   productType: string;
@@ -60,7 +61,7 @@ type FarmInsurance = {
   triggerModel: string;
 };
 
-type FarmExpectations = {
+export type FarmExpectations = {
   seasonLabel: string;
   targetYieldKg: string;
   expectedPricePerKg: string;
@@ -72,7 +73,7 @@ type FarmExpectations = {
   buyerPlan: string;
 };
 
-type FarmRiskProfile = {
+export type FarmRiskProfile = {
   droughtRisk: string;
   floodRisk: string;
   pestRisk: string;
@@ -82,7 +83,7 @@ type FarmRiskProfile = {
   nextPreparednessDrillDate: string;
 };
 
-type FarmOperations = {
+export type FarmOperations = {
   leadFarmerName: string;
   leadFarmerPhone: string;
   extensionOfficerName: string;
@@ -98,7 +99,7 @@ type FarmOperations = {
   agroecologyPractices: string[];
 };
 
-type FarmInsight = {
+export type FarmInsight = {
   id: string;
   title: string;
   detail: string;
@@ -106,7 +107,13 @@ type FarmInsight = {
   level: "critical" | "warning" | "good";
 };
 
-type FarmUnit = {
+export type FarmReadinessItem = {
+  label: string;
+  ready: boolean;
+  detail: string;
+};
+
+export type FarmUnit = {
   id: string;
   name: string;
   district: string;
@@ -135,7 +142,7 @@ const defaultSettings: SettingsForm = {
   priceAlerts: true,
 };
 
-const CROP_OPTIONS = [
+export const CROP_OPTIONS = [
   "Maize",
   "Beans",
   "Cassava",
@@ -153,14 +160,14 @@ const CROP_OPTIONS = [
   "Cabbage",
 ];
 
-const SOIL_TYPE_OPTIONS = ["Loamy", "Sandy", "Clay", "Silty", "Peaty", "Chalky", "Saline", "Black cotton", "Volcanic"];
-const CURRENCY_OPTIONS = ["UGX", "USD", "KES", "TZS"];
-const INSURANCE_PRODUCT_OPTIONS = ["Weather index", "Yield loss", "Input protection", "Livestock", "Other"];
-const CLAIM_STATUS_OPTIONS = ["No claim", "Submitted", "Under review", "Approved", "Rejected", "Paid"];
-const IRRIGATION_OPTIONS = ["Rain-fed", "Manual irrigation", "Drip irrigation", "Sprinkler", "Solar pump", "Gravity flow"];
-const MECHANIZATION_OPTIONS = ["None", "Shared cooperative service", "Rented per season", "Owned"];
-const RISK_LEVEL_OPTIONS = ["1", "2", "3", "4", "5"];
-const AGROECOLOGY_PRACTICES = [
+export const SOIL_TYPE_OPTIONS = ["Loamy", "Sandy", "Clay", "Silty", "Peaty", "Chalky", "Saline", "Black cotton", "Volcanic"];
+export const CURRENCY_OPTIONS = ["UGX", "USD", "KES", "TZS"];
+export const INSURANCE_PRODUCT_OPTIONS = ["Weather index", "Yield loss", "Input protection", "Livestock", "Other"];
+export const CLAIM_STATUS_OPTIONS = ["No claim", "Submitted", "Under review", "Approved", "Rejected", "Paid"];
+export const IRRIGATION_OPTIONS = ["Rain-fed", "Manual irrigation", "Drip irrigation", "Sprinkler", "Solar pump", "Gravity flow"];
+export const MECHANIZATION_OPTIONS = ["None", "Shared cooperative service", "Rented per season", "Owned"];
+export const RISK_LEVEL_OPTIONS = ["1", "2", "3", "4", "5"];
+export const AGROECOLOGY_PRACTICES = [
   "Mulching",
   "Intercropping",
   "Compost use",
@@ -218,7 +225,7 @@ function toBooleanValue(value: unknown, fallback = false): boolean {
   return fallback;
 }
 
-function uniqueStrings(values: string[]): string[] {
+export function uniqueStrings(values: string[]): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
   for (const value of values) {
@@ -354,7 +361,7 @@ function createFarmUnit(partial?: Partial<FarmUnit>): FarmUnit {
   };
 }
 
-function inferProjectedRevenue(farm: FarmUnit): number {
+export function inferProjectedRevenue(farm: FarmUnit): number {
   const explicit = toNumberValue(farm.expectations.projectedRevenue);
   if (explicit != null) return explicit;
   const yieldKg = toNumberValue(farm.expectations.targetYieldKg);
@@ -363,7 +370,7 @@ function inferProjectedRevenue(farm: FarmUnit): number {
   return yieldKg * pricePerKg;
 }
 
-function getPlannedCost(farm: FarmUnit): number {
+export function getPlannedCost(farm: FarmUnit): number {
   const parts = [
     toNumberValue(farm.finance.plannedInputCost) ?? 0,
     toNumberValue(farm.finance.plannedLaborCost) ?? 0,
@@ -380,7 +387,7 @@ function average(values: Array<number | null>): number | null {
   return valid.reduce((sum, item) => sum + item, 0) / valid.length;
 }
 
-function farmRiskAverage(farm: FarmUnit): number | null {
+export function farmRiskAverage(farm: FarmUnit): number | null {
   return average([
     toNumberValue(farm.risk.droughtRisk),
     toNumberValue(farm.risk.floodRisk),
@@ -390,7 +397,7 @@ function farmRiskAverage(farm: FarmUnit): number | null {
   ]);
 }
 
-function formatMoney(value: number, currency: string): string {
+export function formatMoney(value: number, currency: string): string {
   if (!Number.isFinite(value)) return "--";
   try {
     return new Intl.NumberFormat(undefined, {
@@ -403,7 +410,7 @@ function formatMoney(value: number, currency: string): string {
   }
 }
 
-function formatDecimal(value: number | null, fallback = "--"): string {
+export function formatDecimal(value: number | null, fallback = "--"): string {
   if (value == null || !Number.isFinite(value)) return fallback;
   return value.toFixed(1);
 }
@@ -414,7 +421,77 @@ function toInputDate(value: unknown): string {
   return text.slice(0, 10);
 }
 
+function isFarmDraftEmpty(farm: FarmUnit | null): boolean {
+  if (!farm) return true;
+  return !(
+    farm.name.trim() ||
+    farm.district.trim() ||
+    farm.parish.trim() ||
+    farm.crops.length > 0 ||
+    farm.farmSizeAcres.trim() ||
+    farm.expectations.seasonLabel.trim() ||
+    farm.notes.trim()
+  );
+}
+
+const farmSections = [
+  { label: "Farm Home", path: "/dashboard/farm", icon: "overview" as const, subtitle: "Portfolio + switcher" },
+  { label: "Create Farm", path: "/dashboard/farm/create", icon: "plus" as const, subtitle: "Start a clean record" },
+  { label: "Manage Farm", path: "/dashboard/farm/manage", icon: "farm" as const, subtitle: "Edit selected farm" },
+  { label: "Farm Settings", path: "/dashboard/farm/settings", icon: "services" as const, subtitle: "Alerts + defaults" },
+];
+
+export type FarmerFarmWorkspaceContext = {
+  settings: SettingsForm;
+  farms: FarmUnit[];
+  activeFarm: FarmUnit | null;
+  activeFarmId: string;
+  cropOptions: string[];
+  soilTypeOptions: string[];
+  loading: boolean;
+  saving: boolean;
+  message: string | null;
+  error: string | null;
+  totalAreaAcres: number;
+  uniqueCropCount: number;
+  farmsWithWaterAccess: number;
+  insuredFarms: number;
+  totalProjectedRevenue: number;
+  totalPlannedCost: number;
+  totalCoverage: number;
+  portfolioMargin: number;
+  portfolioRiskScore: number | null;
+  portfolioReadinessScore: number;
+  primaryCurrency: string;
+  mixedCurrency: boolean;
+  activeFarmRiskScore: number | null;
+  activePlannedCost: number;
+  activeProjectedRevenue: number;
+  activeExpectedMargin: number;
+  breakEvenPrice: number | null;
+  breakEvenYield: number | null;
+  activeCashRunway: number | null;
+  activeCoverageRatio: number | null;
+  activeFarmReadinessItems: FarmReadinessItem[];
+  activeFarmReadinessScore: number;
+  activeFarmInsights: FarmInsight[];
+  isActiveFarmEmpty: boolean;
+  setActiveFarmId: (farmId: string) => void;
+  onSettingsChange: <K extends keyof SettingsForm>(field: K, value: SettingsForm[K]) => void;
+  onActiveFarmChange: <K extends keyof FarmUnit>(field: K, value: FarmUnit[K]) => void;
+  onFinanceChange: <K extends keyof FarmFinance>(field: K, value: FarmFinance[K]) => void;
+  onInsuranceChange: <K extends keyof FarmInsurance>(field: K, value: FarmInsurance[K]) => void;
+  onExpectationsChange: <K extends keyof FarmExpectations>(field: K, value: FarmExpectations[K]) => void;
+  onRiskChange: <K extends keyof FarmRiskProfile>(field: K, value: FarmRiskProfile[K]) => void;
+  onOperationsChange: <K extends keyof FarmOperations>(field: K, value: FarmOperations[K]) => void;
+  addFarm: () => void;
+  removeFarm: (farmId: string) => void;
+  markPrimaryFarm: (farmId: string) => void;
+  handleSave: () => Promise<void>;
+};
+
 export default function FarmerFarm() {
+  const location = useLocation();
   const [settings, setSettings] = useState<SettingsForm>(defaultSettings);
   const [farms, setFarms] = useState<FarmUnit[]>([]);
   const [activeFarmId, setActiveFarmId] = useState("");
@@ -476,7 +553,7 @@ export default function FarmerFarm() {
   const portfolioReadinessScore = [farms.length > 0, uniqueCropCount > 0, insuredFarms > 0, totalProjectedRevenue > 0, totalPlannedCost > 0]
     .filter(Boolean)
     .length;
-  const activeFarmReadinessItems = useMemo(
+  const activeFarmReadinessItems = useMemo<FarmReadinessItem[]>(
     () => [
       {
         label: "Identity",
@@ -732,20 +809,16 @@ export default function FarmerFarm() {
                 triggerModel: toStringValue(insuranceSource.trigger_model),
               }),
               expectations: createFarmExpectations({
-                seasonLabel:
-                  toStringValue(expectationsSource.season_label) || toStringValue(estimateSource.season_label),
-                targetYieldKg:
-                  toNumberInput(expectationsSource.target_yield_kg) || toNumberInput(estimateSource.target_yield_kg),
+                seasonLabel: toStringValue(expectationsSource.season_label) || toStringValue(estimateSource.season_label),
+                targetYieldKg: toNumberInput(expectationsSource.target_yield_kg) || toNumberInput(estimateSource.target_yield_kg),
                 expectedPricePerKg:
                   toNumberInput(expectationsSource.expected_price_per_kg) || toNumberInput(estimateSource.expected_price_per_kg),
-                projectedRevenue:
-                  toNumberInput(expectationsSource.projected_revenue) || toNumberInput(estimateSource.projected_revenue),
+                projectedRevenue: toNumberInput(expectationsSource.projected_revenue) || toNumberInput(estimateSource.projected_revenue),
                 targetHarvestDate:
                   toInputDate(expectationsSource.target_harvest_date) || toInputDate(estimateSource.target_harvest_date),
                 plantingWindowStart: toInputDate(expectationsSource.planting_window_start),
                 plantingWindowEnd: toInputDate(expectationsSource.planting_window_end),
-                confidencePct:
-                  toNumberInput(expectationsSource.confidence_pct) || toNumberInput(estimateSource.confidence_pct),
+                confidencePct: toNumberInput(expectationsSource.confidence_pct) || toNumberInput(estimateSource.confidence_pct),
                 buyerPlan: toStringValue(expectationsSource.buyer_plan),
               }),
               risk: createFarmRiskProfile({
@@ -1275,30 +1348,83 @@ export default function FarmerFarm() {
     }
   };
 
+  const currentSection = useMemo(
+    () => farmSections.find((item) => (item.path === "/dashboard/farm" ? location.pathname === item.path : location.pathname.startsWith(item.path))) ?? farmSections[0],
+    [location.pathname]
+  );
+
+  const contextValue: FarmerFarmWorkspaceContext = {
+    settings,
+    farms,
+    activeFarm,
+    activeFarmId,
+    cropOptions,
+    soilTypeOptions,
+    loading,
+    saving,
+    message,
+    error,
+    totalAreaAcres,
+    uniqueCropCount,
+    farmsWithWaterAccess,
+    insuredFarms,
+    totalProjectedRevenue,
+    totalPlannedCost,
+    totalCoverage,
+    portfolioMargin,
+    portfolioRiskScore,
+    portfolioReadinessScore,
+    primaryCurrency,
+    mixedCurrency,
+    activeFarmRiskScore,
+    activePlannedCost,
+    activeProjectedRevenue,
+    activeExpectedMargin,
+    breakEvenPrice,
+    breakEvenYield,
+    activeCashRunway,
+    activeCoverageRatio,
+    activeFarmReadinessItems,
+    activeFarmReadinessScore,
+    activeFarmInsights,
+    isActiveFarmEmpty: isFarmDraftEmpty(activeFarm),
+    setActiveFarmId,
+    onSettingsChange,
+    onActiveFarmChange,
+    onFinanceChange,
+    onInsuranceChange,
+    onExpectationsChange,
+    onRiskChange,
+    onOperationsChange,
+    addFarm,
+    removeFarm,
+    markPrimaryFarm,
+    handleSave,
+  };
+
   if (loading) return <section className="farmer-page">Loading farm portfolio...</section>;
 
   return (
-    <section className="farmer-page">
+    <section className="farmer-page farm-workspace-shell">
       <div className="farmer-page-header farmer-command-header">
         <div className="section-title-with-icon">
           <span className="section-icon">
             <Icon name="farm" size={18} />
           </span>
           <div>
-            <div className="label">Farm profile</div>
-            <h1>Farm management command center</h1>
-            <p className="muted">
-              Manage production, finance, insurance, risk, and seasonal expectations in one place.
-            </p>
+            <div className="label">Farm workspace</div>
+            <h1>Break farm work into cleaner pages</h1>
+            <p className="muted">Use farm home for switching, create for clean setup, manage for detailed editing, and settings for alerts and defaults.</p>
           </div>
         </div>
         <div className="farmer-command-actions">
-          <a className="btn ghost small" href="#farm-intelligence">
-            Jump to insights
-          </a>
+          <button className="btn ghost small" type="button" onClick={addFarm}>
+            <Icon name="plus" size={14} />
+            New farm
+          </button>
           <button className="btn small" type="button" onClick={handleSave} disabled={saving}>
             <Icon name="send" size={14} />
-            {saving ? "Saving..." : "Save all updates"}
+            {saving ? "Saving..." : "Save workspace"}
           </button>
         </div>
       </div>
@@ -1307,966 +1433,60 @@ export default function FarmerFarm() {
 
       <section className="farmer-card farmer-command-hero">
         <div className="farmer-command-hero-copy">
-          <div className="label">Portfolio posture</div>
-          <h3>{activeFarm ? `${activeFarm.name || "Active farm"} is the current planning focus` : "Start by selecting a farm"}</h3>
+          <div className="label">{currentSection.subtitle}</div>
+          <h3>{activeFarm ? `${activeFarm.name || "Selected farm"} is active in the workspace` : "Start by selecting or creating a farm"}</h3>
           <p className="muted">
-            Portfolio readiness is {portfolioReadinessScore}/5. Use the farm switcher below, then update production, finance, risk, and execution in sequence.
+            Portfolio readiness is {portfolioReadinessScore}/5 with {farms.length} farm{farms.length === 1 ? "" : "s"} in view. Switch farms here, then open the page that matches the task.
           </p>
           <div className="farmer-chip-row">
             <span className="chip">Farms: {farms.length}</span>
+            <span className="chip">Active readiness: {activeFarm ? `${activeFarmReadinessScore}/5` : "--"}</span>
             <span className="chip">Risk avg: {portfolioRiskScore != null ? `${portfolioRiskScore.toFixed(1)} / 5` : "--"}</span>
-            <span className="chip">Coverage: {totalCoverage > 0 ? formatMoney(totalCoverage, primaryCurrency) : "--"}</span>
           </div>
         </div>
         <div className="farmer-command-hero-side">
           <article className="farmer-command-mini-card">
-            <span className="label">Portfolio margin</span>
-            <strong>{portfolioMargin !== 0 ? formatMoney(portfolioMargin, primaryCurrency) : "--"}</strong>
-            <span className="muted">Expected revenue minus planned cost</span>
+            <span className="label">Selected farm</span>
+            <strong>{activeFarm?.name || "No farm selected"}</strong>
+            <span className="muted">{activeFarm ? [activeFarm.parish, activeFarm.district].filter(Boolean).join(", ") || "Location not set" : "Choose a farm below"}</span>
           </article>
           <article className="farmer-command-mini-card">
-            <span className="label">Active readiness</span>
-            <strong>{activeFarm ? `${activeFarmReadinessScore}/5` : "--"}</strong>
-            <span className="muted">Core planning checks complete</span>
+            <span className="label">Portfolio margin</span>
+            <strong>{portfolioMargin !== 0 ? formatMoney(portfolioMargin, primaryCurrency) : "--"}</strong>
+            <span className="muted">Revenue minus planned cost</span>
           </article>
         </div>
       </section>
 
-      <section className="farmer-card">
-        <div className="farmer-card-header">
-          <div className="section-title-with-icon">
-            <span className="section-icon">
-              <Icon name="overview" size={18} />
-            </span>
-            <div>
-              <div className="label">Portfolio</div>
-              <h3>Registered farms and totals</h3>
-            </div>
-          </div>
-          <button className="btn ghost small" type="button" onClick={addFarm}>
-            <Icon name="plus" size={14} /> Add farm
-          </button>
-        </div>
-
-        <div className="farmer-filter-chip-row farm-section-nav">
-          <a className="btn ghost tiny" href="#farm-identity">
-            Identity
-          </a>
-          <a className="btn ghost tiny" href="#farm-expectations">
-            Expectations
-          </a>
-          <a className="btn ghost tiny" href="#farm-finance">
-            Finance
-          </a>
-          <a className="btn ghost tiny" href="#farm-insurance">
-            Insurance
-          </a>
-          <a className="btn ghost tiny" href="#farm-risk-operations">
-            Risk and ops
-          </a>
-          <a className="btn ghost tiny" href="#farm-intelligence">
-            Intelligence
-          </a>
-          <a className="btn ghost tiny" href="#farm-settings">
-            Settings
-          </a>
-        </div>
-
-        <div className="farm-summary-grid">
-          <div className="farm-summary-card">
-            <div className="label">Farms</div>
-            <div className="farm-summary-value">{farms.length}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Unique crops</div>
-            <div className="farm-summary-value">{uniqueCropCount}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Water access farms</div>
-            <div className="farm-summary-value">{farmsWithWaterAccess}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Insured farms</div>
-            <div className="farm-summary-value">{insuredFarms}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Total acres</div>
-            <div className="farm-summary-value">{totalAreaAcres > 0 ? totalAreaAcres.toFixed(1) : "--"}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Expected revenue</div>
-            <div className="farm-summary-value">
-              {totalProjectedRevenue > 0 ? formatMoney(totalProjectedRevenue, primaryCurrency) : "--"}
-            </div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Planned cost</div>
-            <div className="farm-summary-value">{totalPlannedCost > 0 ? formatMoney(totalPlannedCost, primaryCurrency) : "--"}</div>
-          </div>
-          <div className="farm-summary-card">
-            <div className="label">Expected margin</div>
-            <div className="farm-summary-value">{portfolioMargin !== 0 ? formatMoney(portfolioMargin, primaryCurrency) : "--"}</div>
-          </div>
-        </div>
-
-        <div className="farmer-inline-meta">
-          Insurance coverage tracked: {totalCoverage > 0 ? formatMoney(totalCoverage, primaryCurrency) : "--"}.
-          {mixedCurrency ? " Portfolio has mixed currencies; totals are shown in native units by default." : ""}
-        </div>
-        <div className="farm-portfolio-grid">
-          {farms.map((farm) => (
-            <article key={farm.id} className={`farm-portfolio-item ${farm.id === activeFarmId ? "active" : ""}`}>
-              <button className="farm-portfolio-select" type="button" onClick={() => setActiveFarmId(farm.id)}>
-                <div className="farm-portfolio-title-row">
-                  <strong>{farm.name || "Unnamed farm"}</strong>
-                  {farm.isPrimary ? <span className="pill">primary</span> : null}
-                </div>
-                <div className="farm-portfolio-meta">
-                  {[farm.parish, farm.district].filter(Boolean).join(", ") || "Location not set"}
-                </div>
-                <div className="farm-portfolio-meta">{farm.crops.length} crop{farm.crops.length === 1 ? "" : "s"}</div>
-                <div className="farm-portfolio-meta">
-                  Risk: {formatDecimal(farmRiskAverage(farm))}/5 | Revenue:{" "}
-                  {inferProjectedRevenue(farm) > 0 ? formatMoney(inferProjectedRevenue(farm), farm.finance.currency || "UGX") : "--"}
-                </div>
-              </button>
-              <div className="farm-portfolio-actions">
-                <button
-                  className="btn ghost tiny grik-icon-btn"
-                  type="button"
-                  onClick={() => markPrimaryFarm(farm.id)}
-                  title="Set as primary farm"
-                  aria-label="Set as primary farm"
-                >
-                  <Icon name="shield" size={13} />
-                </button>
-                <button
-                  className="btn ghost tiny grik-icon-btn"
-                  type="button"
-                  onClick={() => removeFarm(farm.id)}
-                  disabled={farms.length <= 1}
-                  title="Remove farm"
-                  aria-label="Remove farm"
-                >
-                  <Icon name="trash" size={13} />
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {activeFarm ? (
-        <>
-          <section className="farmer-card" id="farm-identity">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="farm" size={18} />
-                </span>
-                <div>
-                  <div className="label">Active farm</div>
-                  <h3>{activeFarm.name || "Farm details"}</h3>
-                </div>
-              </div>
-              {activeFarm.isPrimary ? <span className="pill">Primary planning farm</span> : null}
-            </div>
-
-            <div className="farmer-dashboard-grid">
-              <div className="farm-kpi-grid">
-                <article className="farm-kpi-card">
-                  <div className="label">Readiness</div>
-                  <strong>{activeFarmReadinessScore}/5</strong>
-                </article>
-                <article className="farm-kpi-card">
-                  <div className="label">Crop mix</div>
-                  <strong>{activeFarm.crops.length || "--"}</strong>
-                </article>
-                <article className="farm-kpi-card">
-                  <div className="label">Water access</div>
-                  <strong>{activeFarm.hasWaterAccess ? "Available" : "Not tracked"}</strong>
-                </article>
-                <article className="farm-kpi-card">
-                  <div className="label">Last planting</div>
-                  <strong>{activeFarm.lastPlantingDate || "--"}</strong>
-                </article>
-              </div>
-
-              <div className="farmer-side-summary">
-                {activeFarmReadinessItems.map((item) => (
-                  <div key={item.label} className="farmer-side-summary-item">
-                    <span>{item.label}</span>
-                    <strong>{item.ready ? "Ready" : "Pending"}</strong>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Farm name
-                <input value={activeFarm.name} onChange={(event) => onActiveFarmChange("name", event.target.value)} placeholder="Main farm" />
-              </label>
-              <label className="field">
-                District
-                <input value={activeFarm.district} onChange={(event) => onActiveFarmChange("district", event.target.value)} placeholder="Lira" />
-              </label>
-              <label className="field">
-                Parish
-                <input value={activeFarm.parish} onChange={(event) => onActiveFarmChange("parish", event.target.value)} placeholder="Aromo" />
-              </label>
-              <label className="field farmer-form-span">
-                Crops grown
-                <select
-                  multiple
-                  value={activeFarm.crops}
-                  onChange={(event) =>
-                    onActiveFarmChange(
-                      "crops",
-                      Array.from(event.target.selectedOptions, (option) => option.value)
-                    )
-                  }
-                >
-                  {cropOptions.map((crop) => (
-                    <option key={crop} value={crop}>
-                      {crop}
-                    </option>
-                  ))}
-                </select>
-                <span className="field-note">Use Ctrl/Cmd-click to select multiple crops.</span>
-              </label>
-              <label className="field">
-                Last planting date
-                <input
-                  type="date"
-                  value={activeFarm.lastPlantingDate}
-                  onChange={(event) => onActiveFarmChange("lastPlantingDate", event.target.value)}
-                />
-              </label>
-              <label className="field">
-                Soil type
-                <select value={activeFarm.soilType} onChange={(event) => onActiveFarmChange("soilType", event.target.value)}>
-                  <option value="">Select soil type</option>
-                  {soilTypeOptions.map((soilType) => (
-                    <option key={soilType} value={soilType}>
-                      {soilType}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Farm size (acres)
-                <input
-                  type="number"
-                  value={activeFarm.farmSizeAcres}
-                  onChange={(event) => onActiveFarmChange("farmSizeAcres", event.target.value)}
-                  placeholder="2.5"
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Farm notes
-                <textarea
-                  value={activeFarm.notes}
-                  onChange={(event) => onActiveFarmChange("notes", event.target.value)}
-                  rows={3}
-                  placeholder="Main constraints, land issues, labor bottlenecks, or critical context."
-                />
-              </label>
-            </div>
-
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={activeFarm.hasWaterAccess}
-                onChange={(event) => onActiveFarmChange("hasWaterAccess", event.target.checked)}
-              />
-              <span>Water access available on this farm</span>
-            </label>
-          </section>
-
-          <section className="farmer-card" id="farm-expectations">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="activity" size={18} />
-                </span>
-                <div>
-                  <div className="label">Season expectations</div>
-                  <h3>Yield, market, and outcome targets</h3>
-                </div>
-              </div>
-            </div>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Season label
-                <input
-                  value={activeFarm.expectations.seasonLabel}
-                  onChange={(event) => onExpectationsChange("seasonLabel", event.target.value)}
-                  placeholder="2026 Season A"
-                />
-              </label>
-              <label className="field">
-                Planting window start
-                <input
-                  type="date"
-                  value={activeFarm.expectations.plantingWindowStart}
-                  onChange={(event) => onExpectationsChange("plantingWindowStart", event.target.value)}
-                />
-              </label>
-              <label className="field">
-                Planting window end
-                <input
-                  type="date"
-                  value={activeFarm.expectations.plantingWindowEnd}
-                  onChange={(event) => onExpectationsChange("plantingWindowEnd", event.target.value)}
-                />
-              </label>
-              <label className="field">
-                Target harvest date
-                <input
-                  type="date"
-                  value={activeFarm.expectations.targetHarvestDate}
-                  onChange={(event) => onExpectationsChange("targetHarvestDate", event.target.value)}
-                />
-              </label>
-              <label className="field">
-                Target yield (kg)
-                <input
-                  type="number"
-                  value={activeFarm.expectations.targetYieldKg}
-                  onChange={(event) => onExpectationsChange("targetYieldKg", event.target.value)}
-                  placeholder="3600"
-                />
-              </label>
-              <label className="field">
-                Expected price per kg
-                <input
-                  type="number"
-                  value={activeFarm.expectations.expectedPricePerKg}
-                  onChange={(event) => onExpectationsChange("expectedPricePerKg", event.target.value)}
-                  placeholder="1200"
-                />
-              </label>
-              <label className="field">
-                Revenue target (optional override)
-                <input
-                  type="number"
-                  value={activeFarm.expectations.projectedRevenue}
-                  onChange={(event) => onExpectationsChange("projectedRevenue", event.target.value)}
-                  placeholder="4200000"
-                />
-              </label>
-              <label className="field">
-                Confidence (%)
-                <input
-                  type="number"
-                  value={activeFarm.expectations.confidencePct}
-                  onChange={(event) => onExpectationsChange("confidencePct", event.target.value)}
-                  placeholder="65"
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Buyer plan / market channel
-                <textarea
-                  rows={2}
-                  value={activeFarm.expectations.buyerPlan}
-                  onChange={(event) => onExpectationsChange("buyerPlan", event.target.value)}
-                  placeholder="Cooperative bulk sale, direct market, contract buyer..."
-                />
-              </label>
-            </div>
-
-            <div className="farm-kpi-grid">
-              <article className="farm-kpi-card">
-                <div className="label">Projected revenue</div>
-                <strong>{activeProjectedRevenue > 0 ? formatMoney(activeProjectedRevenue, activeFarm.finance.currency || "UGX") : "--"}</strong>
-              </article>
-              <article className="farm-kpi-card">
-                <div className="label">Planned season cost</div>
-                <strong>{activePlannedCost > 0 ? formatMoney(activePlannedCost, activeFarm.finance.currency || "UGX") : "--"}</strong>
-              </article>
-              <article className="farm-kpi-card">
-                <div className="label">Expected margin</div>
-                <strong>{activeExpectedMargin !== 0 ? formatMoney(activeExpectedMargin, activeFarm.finance.currency || "UGX") : "--"}</strong>
-              </article>
-              <article className="farm-kpi-card">
-                <div className="label">Break-even price/kg</div>
-                <strong>{breakEvenPrice != null ? formatMoney(breakEvenPrice, activeFarm.finance.currency || "UGX") : "--"}</strong>
-              </article>
-              <article className="farm-kpi-card">
-                <div className="label">Break-even yield (kg)</div>
-                <strong>{breakEvenYield != null ? breakEvenYield.toFixed(0) : "--"}</strong>
-              </article>
-              <article className="farm-kpi-card">
-                <div className="label">Risk score</div>
-                <strong>{activeFarmRiskScore != null ? `${activeFarmRiskScore.toFixed(1)} / 5` : "--"}</strong>
-              </article>
-            </div>
-          </section>
-
-          <section className="farmer-card" id="farm-finance">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="finance" size={18} />
-                </span>
-                <div>
-                  <div className="label">Finance management</div>
-                  <h3>Budget, liquidity, and credit</h3>
-                </div>
-              </div>
-            </div>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Currency
-                <select value={activeFarm.finance.currency} onChange={(event) => onFinanceChange("currency", event.target.value)}>
-                  {CURRENCY_OPTIONS.map((currency) => (
-                    <option key={currency} value={currency}>
-                      {currency}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Planned input cost
-                <input
-                  type="number"
-                  value={activeFarm.finance.plannedInputCost}
-                  onChange={(event) => onFinanceChange("plannedInputCost", event.target.value)}
-                  placeholder="Seeds, fertilizer, pesticides"
-                />
-              </label>
-              <label className="field">
-                Planned labor cost
-                <input
-                  type="number"
-                  value={activeFarm.finance.plannedLaborCost}
-                  onChange={(event) => onFinanceChange("plannedLaborCost", event.target.value)}
-                  placeholder="Hiring and supervision"
-                />
-              </label>
-              <label className="field">
-                Planned logistics cost
-                <input
-                  type="number"
-                  value={activeFarm.finance.plannedLogisticsCost}
-                  onChange={(event) => onFinanceChange("plannedLogisticsCost", event.target.value)}
-                  placeholder="Transport and post-harvest handling"
-                />
-              </label>
-              <label className="field">
-                Planned other cost
-                <input
-                  type="number"
-                  value={activeFarm.finance.plannedOtherCost}
-                  onChange={(event) => onFinanceChange("plannedOtherCost", event.target.value)}
-                  placeholder="Rent, tools, fees"
-                />
-              </label>
-              <label className="field">
-                Loan principal
-                <input
-                  type="number"
-                  value={activeFarm.finance.loanPrincipal}
-                  onChange={(event) => onFinanceChange("loanPrincipal", event.target.value)}
-                  placeholder="Current credit amount"
-                />
-              </label>
-              <label className="field">
-                Loan interest (%)
-                <input
-                  type="number"
-                  value={activeFarm.finance.loanInterestPct}
-                  onChange={(event) => onFinanceChange("loanInterestPct", event.target.value)}
-                  placeholder="18"
-                />
-              </label>
-              <label className="field">
-                Expected installment
-                <input
-                  type="number"
-                  value={activeFarm.finance.expectedInstallment}
-                  onChange={(event) => onFinanceChange("expectedInstallment", event.target.value)}
-                  placeholder="Per cycle repayment"
-                />
-              </label>
-              <label className="field">
-                Cash on hand
-                <input
-                  type="number"
-                  value={activeFarm.finance.currentCashOnHand}
-                  onChange={(event) => onFinanceChange("currentCashOnHand", event.target.value)}
-                  placeholder="Available liquidity"
-                />
-              </label>
-              <label className="field">
-                Savings target
-                <input
-                  type="number"
-                  value={activeFarm.finance.savingsTarget}
-                  onChange={(event) => onFinanceChange("savingsTarget", event.target.value)}
-                  placeholder="Season savings goal"
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Finance notes
-                <textarea
-                  rows={2}
-                  value={activeFarm.finance.notes}
-                  onChange={(event) => onFinanceChange("notes", event.target.value)}
-                  placeholder="Loan conditions, repayment risks, supplier credit terms..."
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="farmer-card" id="farm-insurance">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="shield" size={18} />
-                </span>
-                <div>
-                  <div className="label">Insurance</div>
-                  <h3>Protection and claim readiness</h3>
-                </div>
-              </div>
-            </div>
-
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={activeFarm.insurance.enrolled}
-                onChange={(event) => onInsuranceChange("enrolled", event.target.checked)}
-              />
-              <span>Farm enrolled in insurance</span>
-            </label>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Insurance provider
-                <input
-                  value={activeFarm.insurance.provider}
-                  onChange={(event) => onInsuranceChange("provider", event.target.value)}
-                  placeholder="Name of insurer or cooperative"
-                />
-              </label>
-              <label className="field">
-                Product type
-                <select value={activeFarm.insurance.productType} onChange={(event) => onInsuranceChange("productType", event.target.value)}>
-                  <option value="">Select product</option>
-                  {INSURANCE_PRODUCT_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Policy number
-                <input
-                  value={activeFarm.insurance.policyNumber}
-                  onChange={(event) => onInsuranceChange("policyNumber", event.target.value)}
-                  placeholder="Policy reference"
-                />
-              </label>
-              <label className="field">
-                Coverage amount
-                <input
-                  type="number"
-                  value={activeFarm.insurance.coverageAmount}
-                  onChange={(event) => onInsuranceChange("coverageAmount", event.target.value)}
-                  placeholder="Coverage value"
-                />
-              </label>
-              <label className="field">
-                Premium amount
-                <input
-                  type="number"
-                  value={activeFarm.insurance.premiumAmount}
-                  onChange={(event) => onInsuranceChange("premiumAmount", event.target.value)}
-                  placeholder="Premium paid"
-                />
-              </label>
-              <label className="field">
-                Policy start date
-                <input type="date" value={activeFarm.insurance.startDate} onChange={(event) => onInsuranceChange("startDate", event.target.value)} />
-              </label>
-              <label className="field">
-                Policy end date
-                <input type="date" value={activeFarm.insurance.endDate} onChange={(event) => onInsuranceChange("endDate", event.target.value)} />
-              </label>
-              <label className="field">
-                Claim status
-                <select value={activeFarm.insurance.claimStatus} onChange={(event) => onInsuranceChange("claimStatus", event.target.value)}>
-                  {CLAIM_STATUS_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Last claim amount
-                <input
-                  type="number"
-                  value={activeFarm.insurance.lastClaimAmount}
-                  onChange={(event) => onInsuranceChange("lastClaimAmount", event.target.value)}
-                  placeholder="0"
-                />
-              </label>
-              <label className="field">
-                Last claim date
-                <input
-                  type="date"
-                  value={activeFarm.insurance.lastClaimDate}
-                  onChange={(event) => onInsuranceChange("lastClaimDate", event.target.value)}
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Trigger model / conditions
-                <textarea
-                  rows={2}
-                  value={activeFarm.insurance.triggerModel}
-                  onChange={(event) => onInsuranceChange("triggerModel", event.target.value)}
-                  placeholder="Rainfall threshold, loss threshold, NDVI trigger, etc."
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="farmer-card" id="farm-risk-operations">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="climate" size={18} />
-                </span>
-                <div>
-                  <div className="label">Risk and operations</div>
-                  <h3>Preparedness, staffing, and execution</h3>
-                </div>
-              </div>
-            </div>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Drought risk (1-5)
-                <select value={activeFarm.risk.droughtRisk} onChange={(event) => onRiskChange("droughtRisk", event.target.value)}>
-                  <option value="">Select</option>
-                  {RISK_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Flood risk (1-5)
-                <select value={activeFarm.risk.floodRisk} onChange={(event) => onRiskChange("floodRisk", event.target.value)}>
-                  <option value="">Select</option>
-                  {RISK_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Pest risk (1-5)
-                <select value={activeFarm.risk.pestRisk} onChange={(event) => onRiskChange("pestRisk", event.target.value)}>
-                  <option value="">Select</option>
-                  {RISK_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Disease risk (1-5)
-                <select value={activeFarm.risk.diseaseRisk} onChange={(event) => onRiskChange("diseaseRisk", event.target.value)}>
-                  <option value="">Select</option>
-                  {RISK_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Market risk (1-5)
-                <select value={activeFarm.risk.marketRisk} onChange={(event) => onRiskChange("marketRisk", event.target.value)}>
-                  <option value="">Select</option>
-                  {RISK_LEVEL_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Next preparedness drill
-                <input
-                  type="date"
-                  value={activeFarm.risk.nextPreparednessDrillDate}
-                  onChange={(event) => onRiskChange("nextPreparednessDrillDate", event.target.value)}
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Mitigation plan
-                <textarea
-                  rows={2}
-                  value={activeFarm.risk.mitigationPlan}
-                  onChange={(event) => onRiskChange("mitigationPlan", event.target.value)}
-                  placeholder="Contingency actions for drought, pests, flood, and market shocks."
-                />
-              </label>
-            </div>
-
-            <div className="farmer-form-grid">
-              <label className="field">
-                Lead farmer
-                <input
-                  value={activeFarm.operations.leadFarmerName}
-                  onChange={(event) => onOperationsChange("leadFarmerName", event.target.value)}
-                  placeholder="Farm lead name"
-                />
-              </label>
-              <label className="field">
-                Lead farmer phone
-                <input
-                  value={activeFarm.operations.leadFarmerPhone}
-                  onChange={(event) => onOperationsChange("leadFarmerPhone", event.target.value)}
-                  placeholder="+256..."
-                />
-              </label>
-              <label className="field">
-                Extension officer
-                <input
-                  value={activeFarm.operations.extensionOfficerName}
-                  onChange={(event) => onOperationsChange("extensionOfficerName", event.target.value)}
-                  placeholder="Officer or agent"
-                />
-              </label>
-              <label className="field">
-                Extension officer phone
-                <input
-                  value={activeFarm.operations.extensionOfficerPhone}
-                  onChange={(event) => onOperationsChange("extensionOfficerPhone", event.target.value)}
-                  placeholder="+256..."
-                />
-              </label>
-              <label className="field">
-                Irrigation type
-                <select value={activeFarm.operations.irrigationType} onChange={(event) => onOperationsChange("irrigationType", event.target.value)}>
-                  <option value="">Select irrigation</option>
-                  {IRRIGATION_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Storage capacity (kg)
-                <input
-                  type="number"
-                  value={activeFarm.operations.storageCapacityKg}
-                  onChange={(event) => onOperationsChange("storageCapacityKg", event.target.value)}
-                  placeholder="1200"
-                />
-              </label>
-              <label className="field">
-                Household labor count
-                <input
-                  type="number"
-                  value={activeFarm.operations.householdLaborCount}
-                  onChange={(event) => onOperationsChange("householdLaborCount", event.target.value)}
-                  placeholder="3"
-                />
-              </label>
-              <label className="field">
-                Hired labor count
-                <input
-                  type="number"
-                  value={activeFarm.operations.hiredLaborCount}
-                  onChange={(event) => onOperationsChange("hiredLaborCount", event.target.value)}
-                  placeholder="6"
-                />
-              </label>
-              <label className="field">
-                Mechanization access
-                <select value={activeFarm.operations.mechanizationAccess} onChange={(event) => onOperationsChange("mechanizationAccess", event.target.value)}>
-                  <option value="">Select</option>
-                  {MECHANIZATION_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                Input supplier
-                <input
-                  value={activeFarm.operations.inputSupplier}
-                  onChange={(event) => onOperationsChange("inputSupplier", event.target.value)}
-                  placeholder="Supplier, agro-dealer, cooperative"
-                />
-              </label>
-              <label className="field">
-                Next action date
-                <input
-                  type="date"
-                  value={activeFarm.operations.nextActionDate}
-                  onChange={(event) => onOperationsChange("nextActionDate", event.target.value)}
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Next action note
-                <textarea
-                  rows={2}
-                  value={activeFarm.operations.nextActionNote}
-                  onChange={(event) => onOperationsChange("nextActionNote", event.target.value)}
-                  placeholder="What must be done next and by whom?"
-                />
-              </label>
-              <label className="field farmer-form-span">
-                Agroecology practices in use
-                <select
-                  multiple
-                  value={activeFarm.operations.agroecologyPractices}
-                  onChange={(event) =>
-                    onOperationsChange(
-                      "agroecologyPractices",
-                      Array.from(event.target.selectedOptions, (option) => option.value)
-                    )
-                  }
-                >
-                  {AGROECOLOGY_PRACTICES.map((practice) => (
-                    <option key={practice} value={practice}>
-                      {practice}
-                    </option>
-                  ))}
-                </select>
-                <span className="field-note">Track climate-smart and regenerative practices per farm.</span>
-              </label>
-            </div>
-          </section>
-
-          <section className="farmer-card" id="farm-intelligence">
-            <div className="farmer-card-header">
-              <div className="section-title-with-icon">
-                <span className="section-icon">
-                  <Icon name="spark" size={18} />
-                </span>
-                <div>
-                  <div className="label">Farm intelligence</div>
-                  <h3>Priority actions from your live profile</h3>
-                </div>
-              </div>
-            </div>
-
-            <div className="farm-insight-grid">
-              {activeFarmInsights.map((insight) => (
-                <article key={insight.id} className={`farm-insight-card ${insight.level}`}>
-                  <div className="farm-insight-heading">
-                    <strong>{insight.title}</strong>
-                    <span className={`farm-insight-badge ${insight.level}`}>{insight.level}</span>
-                  </div>
-                  <p>{insight.detail}</p>
-                  <div className="farm-insight-action">{insight.action}</div>
-                </article>
+      <section className="farmer-card farm-workspace-toolbar">
+        <div className="farm-workspace-picker">
+          <label className="field">
+            Active farm
+            <select value={activeFarmId} onChange={(event) => setActiveFarmId(event.target.value)}>
+              {farms.map((farm) => (
+                <option key={farm.id} value={farm.id}>
+                  {farm.name || "Unnamed farm"}{farm.isPrimary ? " (Primary)" : ""}
+                </option>
               ))}
-            </div>
-
-            <div className="farm-insight-meta">
-              Cash runway:{" "}
-              {activeCashRunway != null ? `${Math.max(activeCashRunway, 0).toFixed(2)}x season cost` : "--"} | Coverage ratio:{" "}
-              {activeCoverageRatio != null ? `${(Math.max(activeCoverageRatio, 0) * 100).toFixed(0)}% of expected revenue` : "--"} | Risk
-              score: {activeFarmRiskScore != null ? `${activeFarmRiskScore.toFixed(1)} / 5` : "--"}
-            </div>
-          </section>
-        </>
-      ) : null}
-
-      <section className="farmer-card" id="farm-settings">
-        <div className="farmer-card-header">
-          <div className="section-title-with-icon">
-            <span className="section-icon">
-              <Icon name="services" size={18} />
-            </span>
-            <div>
-              <div className="label">Farmer settings</div>
-              <h3>Channels and alert preferences</h3>
-            </div>
-          </div>
-        </div>
-
-        <div className="farmer-form-grid">
-          <label className="field">
-            Preferred language
-            <input
-              value={settings.preferredLanguage}
-              onChange={(event) => onSettingsChange("preferredLanguage", event.target.value)}
-              placeholder="English / Luganda / Runyankole"
-            />
-          </label>
-          <label className="field">
-            Default district (synced from primary farm)
-            <input value={settings.district} onChange={(event) => onSettingsChange("district", event.target.value)} placeholder="Lira" />
-          </label>
-          <label className="field">
-            Default parish (synced from primary farm)
-            <input value={settings.parish} onChange={(event) => onSettingsChange("parish", event.target.value)} placeholder="Aromo" />
+            </select>
           </label>
         </div>
-
-        <div className="farmer-toggle-grid">
-          <label className="toggle">
-            <input type="checkbox" checked={settings.smsOptIn} onChange={(event) => onSettingsChange("smsOptIn", event.target.checked)} />
-            <span>SMS updates</span>
-          </label>
-          <label className="toggle">
-            <input type="checkbox" checked={settings.voiceOptIn} onChange={(event) => onSettingsChange("voiceOptIn", event.target.checked)} />
-            <span>Voice updates</span>
-          </label>
-          <label className="toggle">
-            <input type="checkbox" checked={settings.weatherAlerts} onChange={(event) => onSettingsChange("weatherAlerts", event.target.checked)} />
-            <span>Weather alerts</span>
-          </label>
-          <label className="toggle">
-            <input type="checkbox" checked={settings.priceAlerts} onChange={(event) => onSettingsChange("priceAlerts", event.target.checked)} />
-            <span>Price alerts</span>
-          </label>
-        </div>
-
-        <button className="btn" type="button" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save farm management profile"}
-        </button>
+        <nav className="farm-workspace-nav" aria-label="Farm workspace pages">
+          {farmSections.map((item) => (
+            <NavLink key={item.path} to={item.path} end={item.path === "/dashboard/farm"} className={({ isActive }) => `farm-workspace-nav-link ${isActive ? "active" : ""}`}>
+              <span className="nav-icon">
+                <Icon name={item.icon} size={15} />
+              </span>
+              <span>
+                <strong>{item.label}</strong>
+                <small>{item.subtitle}</small>
+              </span>
+            </NavLink>
+          ))}
+        </nav>
       </section>
 
-      <section className="farmer-card">
-        <div className="farmer-card-header">
-          <div className="section-title-with-icon">
-            <span className="section-icon">
-              <Icon name="spark" size={18} />
-            </span>
-            <div>
-              <div className="label">Decision support</div>
-              <h3>What this profile unlocks in GRIK</h3>
-            </div>
-          </div>
-        </div>
-        <ul className="grik-stack-list">
-          <li>Farm-level yield and profitability projections tied to your actual cost structure</li>
-          <li>Insurance readiness tracking, policy context, and future claim support</li>
-          <li>Risk-based advisory prompts based on drought, flood, pest, and market pressure scores</li>
-          <li>Climate-smart operations follow-up through next action dates and practices</li>
-          <li>Data foundation for financing discussions with cooperatives, lenders, and insurers</li>
-        </ul>
-      </section>
+      <Outlet context={contextValue} />
     </section>
   );
 }

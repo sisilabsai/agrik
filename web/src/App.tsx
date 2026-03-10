@@ -17,6 +17,10 @@ import AppLayout from "./pages/Layout";
 import FarmerLayout from "./pages/FarmerLayout";
 import FarmerOverview from "./pages/FarmerOverview";
 import FarmerFarm from "./pages/FarmerFarm";
+import FarmerFarmHome from "./pages/FarmerFarmHome";
+import FarmerFarmCreate from "./pages/FarmerFarmCreate";
+import FarmerFarmManage from "./pages/FarmerFarmManage";
+import FarmerFarmSettings from "./pages/FarmerFarmSettings";
 import FarmerMarketHub from "./pages/FarmerMarketHub";
 import FarmerServices from "./pages/FarmerServices";
 import FarmerSubscriptions from "./pages/FarmerSubscriptions";
@@ -77,7 +81,12 @@ export default function App() {
           element={isAuthed ? (isBuyerRole || isProviderRole ? <Navigate to={defaultPath} /> : <FarmerLayout />) : <Navigate to="/auth" />}
         >
           <Route index element={<FarmerOverview />} />
-          <Route path="farm" element={<FarmerFarm />} />
+          <Route path="farm" element={<FarmerFarm />}>
+            <Route index element={<FarmerFarmHome />} />
+            <Route path="create" element={<FarmerFarmCreate />} />
+            <Route path="manage" element={<FarmerFarmManage />} />
+            <Route path="settings" element={<FarmerFarmSettings />} />
+          </Route>
           <Route path="market" element={<FarmerMarketHub />} />
           <Route path="services" element={<FarmerServices />} />
           <Route path="subscriptions" element={<FarmerSubscriptions />} />

@@ -1127,6 +1127,10 @@ a {
   gap: 12px;
 }
 
+.farm-workspace-shell {
+  gap: 14px;
+}
+
 .farmer-page .label {
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -1154,6 +1158,62 @@ a {
 .farmer-page-header h1 {
   margin: 4px 0 0;
   font-size: clamp(22px, 2.2vw, 28px);
+}
+
+.farm-workspace-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.farm-workspace-picker {
+  min-width: 0;
+}
+
+.farm-workspace-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.farm-workspace-nav-link {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 11, 11, 0.08);
+  background: rgba(31, 111, 61, 0.04);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.farm-workspace-nav-link:hover {
+  border-color: rgba(31, 111, 61, 0.26);
+  transform: translateY(-1px);
+}
+
+.farm-workspace-nav-link.active {
+  border-color: rgba(31, 111, 61, 0.36);
+  background: rgba(31, 111, 61, 0.1);
+}
+
+.farm-workspace-nav-link span:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.farm-workspace-nav-link strong {
+  font-size: 14px;
+}
+
+.farm-workspace-nav-link small {
+  color: rgba(11, 11, 11, 0.62);
+}
+
+.farm-create-hero {
+  align-items: center;
 }
 
 .farmer-kpi-grid {
@@ -3298,6 +3358,14 @@ a {
   .farmer-recommendation-card {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .farm-workspace-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .farm-workspace-nav {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 
   .grik-page-header,

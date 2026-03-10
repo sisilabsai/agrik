@@ -7,7 +7,7 @@ import MobileFabMenu from "../components/MobileFabMenu";
 
 const navItems = [
   { label: "Overview", path: "/dashboard", subtitle: "Home", icon: "overview" as const },
-  { label: "Farm Profile", path: "/dashboard/farm", subtitle: "Registration & updates", icon: "farm" as const },
+  { label: "Farm Workspace", path: "/dashboard/farm", subtitle: "Portfolio, create & manage", icon: "farm" as const },
   { label: "Market Hub", path: "/dashboard/market", subtitle: "Listings & services", icon: "market" as const },
   { label: "Services", path: "/dashboard/services", subtitle: "AGRIK subscriptions", icon: "services" as const },
   { label: "Subscriptions", path: "/dashboard/subscriptions", subtitle: "Plans & billing", icon: "subscriptions" as const },
@@ -89,7 +89,7 @@ export default function FarmerLayout() {
           actions={[
             { label: "Open brain", to: "/dashboard/brain", icon: "brain" },
             { label: "Open market", to: "/dashboard/market", icon: "market" },
-            { label: "Farm profile", to: "/dashboard/farm", icon: "farm" },
+            { label: "Farm workspace", to: "/dashboard/farm", icon: "farm" },
             { label: "History", to: "/dashboard/history", icon: "history" },
             { label: "Sign out", icon: "shield", onClick: logout },
           ]}
