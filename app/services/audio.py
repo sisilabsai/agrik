@@ -120,6 +120,8 @@ def _trim(text: Any, limit: int = 260) -> str:
 
 def _speech_friendly_text(text: str) -> str:
     spoken = str(text or "")
+    # Keep the product name spoken like a name instead of individual letters.
+    spoken = re.sub(r"\bGRIK\b", "Grik", spoken)
     spoken = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", spoken)
     spoken = re.sub(r"`([^`]*)`", r"\1", spoken)
     spoken = re.sub(r"^#{1,6}\s*", "", spoken, flags=re.MULTILINE)
