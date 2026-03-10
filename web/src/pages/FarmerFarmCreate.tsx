@@ -1,6 +1,7 @@
 import { NavLink, useOutletContext } from "react-router-dom";
 import { Icon } from "../components/Visuals";
 import { type FarmerFarmWorkspaceContext } from "./FarmerFarm";
+import FarmerCropSelector from "./FarmerCropSelector";
 
 export default function FarmerFarmCreate() {
   const { activeFarm, cropOptions, soilTypeOptions, isActiveFarmEmpty, addFarm, onActiveFarmChange, onExpectationsChange, handleSave, saving } =
@@ -80,18 +81,8 @@ export default function FarmerFarmCreate() {
           </label>
           <label className="field farmer-form-span">
             Crops grown
-            <select
-              multiple
-              value={activeFarm.crops}
-              onChange={(event) => onActiveFarmChange("crops", Array.from(event.target.selectedOptions, (option) => option.value))}
-            >
-              {cropOptions.map((crop) => (
-                <option key={crop} value={crop}>
-                  {crop}
-                </option>
-              ))}
-            </select>
-            <span className="field-note">Use Ctrl/Cmd-click to select multiple crops.</span>
+            <FarmerCropSelector options={cropOptions} selected={activeFarm.crops} onChange={(value) => onActiveFarmChange("crops", value)} />
+            <span className="field-note">Tap or tick each crop you want to track on this farm.</span>
           </label>
           <label className="field farmer-form-span">
             Farm notes

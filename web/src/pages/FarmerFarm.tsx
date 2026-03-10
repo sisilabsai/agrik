@@ -497,6 +497,7 @@ export default function FarmerFarm() {
   const [activeFarmId, setActiveFarmId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -704,6 +705,17 @@ export default function FarmerFarm() {
     activePlannedCost,
     activeProjectedRevenue,
   ]);
+
+  useEffect(() => {
+    if (!isHelpOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsHelpOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isHelpOpen]);
 
   useEffect(() => {
     setLoading(true);
@@ -1418,6 +1430,9 @@ export default function FarmerFarm() {
           </div>
         </div>
         <div className="farmer-command-actions">
+          <button className="btn ghost small" type="button" onClick={() => setIsHelpOpen(true)}>
+            How to use
+          </button>
           <button className="btn ghost small" type="button" onClick={addFarm}>
             <Icon name="plus" size={14} />
             New farm
@@ -1487,6 +1502,56 @@ export default function FarmerFarm() {
       </section>
 
       <Outlet context={contextValue} />
+
+      {isHelpOpen ? (
+        <div className="farm-help-modal-backdrop" role="presentation" onClick={() => setIsHelpOpen(false)}>
+          <section className="farm-help-modal" role="dialog" aria-modal="true" aria-labelledby="farm-help-modal-title" onClick={(event) => event.stopPropagation()}>
+            <div className="farmer-card-header">
+              <div className="section-title-with-icon">
+                <span className="section-icon">
+                  <Icon name="spark" size={18} />
+                </span>
+                <div>
+                  <div className="label">Farm workspace guide</div>
+                  <h3 id="farm-help-modal-title">How farmers should use this page</h3>
+                </div>
+              </div>
+              <button className="btn ghost small" type="button" onClick={() => setIsHelpOpen(false)}>
+                Close
+              </button>
+            </div>
+
+            <div className="farm-help-modal-body">
+              <article className="farm-help-step">
+                <strong>1. Start on Farm Home</strong>
+                <p>Switch between farms, choose the active farm, and mark the main farm as primary if you have more than one.</p>
+              </article>
+              <article className="farm-help-step">
+                <strong>2. Use Create Farm for new records</strong>
+                <p>That page is the clean onboarding flow. Add the farm name, location, size, crops, and season targets first.</p>
+              </article>
+              <article className="farm-help-step">
+                <strong>3. Use Manage Farm for detail</strong>
+                <p>Open the selected farm to fill in finance, insurance, risk, operations, and market planning.</p>
+              </article>
+              <article className="farm-help-step">
+                <strong>4. Tick crops with checkboxes</strong>
+                <p>Crops no longer use the multi-select dropdown. Farmers can just tick each crop that applies to that farm.</p>
+              </article>
+              <article className="farm-help-step">
+                <strong>5. Save the workspace</strong>
+                <p>The save button writes the current farm workspace, including the active farm changes and synced primary farm location.</p>
+              </article>
+            </div>
+
+            <div className="farm-help-modal-footer">
+              <button className="btn" type="button" onClick={() => setIsHelpOpen(false)}>
+                Done
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }

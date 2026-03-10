@@ -11,6 +11,7 @@ import {
   formatMoney,
   type FarmerFarmWorkspaceContext,
 } from "./FarmerFarm";
+import FarmerCropSelector from "./FarmerCropSelector";
 
 export default function FarmerFarmManage() {
   const {
@@ -124,18 +125,8 @@ export default function FarmerFarmManage() {
           </label>
           <label className="field farmer-form-span">
             Crops grown
-            <select
-              multiple
-              value={activeFarm.crops}
-              onChange={(event) => onActiveFarmChange("crops", Array.from(event.target.selectedOptions, (option) => option.value))}
-            >
-              {cropOptions.map((crop) => (
-                <option key={crop} value={crop}>
-                  {crop}
-                </option>
-              ))}
-            </select>
-            <span className="field-note">Use Ctrl/Cmd-click to select multiple crops.</span>
+            <FarmerCropSelector options={cropOptions} selected={activeFarm.crops} onChange={(value) => onActiveFarmChange("crops", value)} />
+            <span className="field-note">Use the checkboxes to update the crop mix for this farm.</span>
           </label>
           <label className="field">
             Last planting date

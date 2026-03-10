@@ -576,6 +576,33 @@ a {
   min-height: 90px;
 }
 
+.crop-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.crop-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 11, 11, 0.1);
+  background: rgba(31, 111, 61, 0.04);
+  font-weight: 500;
+}
+
+.crop-checkbox-item.selected {
+  border-color: rgba(31, 111, 61, 0.38);
+  background: rgba(31, 111, 61, 0.1);
+}
+
+.crop-checkbox-item input {
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
 .field-note {
   font-size: 12px;
   font-weight: 500;
@@ -1214,6 +1241,56 @@ a {
 
 .farm-create-hero {
   align-items: center;
+}
+
+.farm-help-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(11, 11, 11, 0.42);
+}
+
+.farm-help-modal {
+  width: min(720px, 100%);
+  max-height: min(88vh, 760px);
+  overflow-y: auto;
+  background: var(--color-white);
+  border-radius: 20px;
+  border: 1px solid rgba(11, 11, 11, 0.08);
+  box-shadow: 0 24px 60px rgba(11, 11, 11, 0.22);
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+}
+
+.farm-help-modal-body {
+  display: grid;
+  gap: 12px;
+}
+
+.farm-help-step {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(11, 11, 11, 0.08);
+  background: rgba(31, 111, 61, 0.04);
+}
+
+.farm-help-step strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.farm-help-step p {
+  margin: 0;
+  color: rgba(11, 11, 11, 0.72);
+}
+
+.farm-help-modal-footer {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .farmer-kpi-grid {
